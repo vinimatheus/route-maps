@@ -6,18 +6,8 @@ import { useLeafletMap } from "./LeafletMapContext";
 import type L from 'leaflet';
 
 // Declare types for the window.L global
-declare global {
-  interface Window {
-    L: typeof L & {
-      Routing: {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        osrmv1: (options: any) => any;
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        control: (options: any) => any;
-      }
-    }
-  }
-}
+// Remova esse trecho abaixo completamente do seu RouteControl.tsx
+
 
 interface RouteControlProps {
   waypoints: (ParsedAddress & { lat: number; lng: number })[];
@@ -57,10 +47,8 @@ export default function RouteControl({ waypoints, showRoute }: RouteControlProps
           profile: "car",
           timeout: 30000,
         }) as unknown as L.Routing.IRouter;
-
         const routingControl = window.L.Routing.control({
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          waypoints: routeWaypoints as any,
+          waypoints: routeWaypoints,
           router: customRouter,
           routeWhileDragging: false,
           showAlternatives: false,
@@ -68,27 +56,31 @@ export default function RouteControl({ waypoints, showRoute }: RouteControlProps
           fitSelectedRoutes: true,
           show: false,
           createMarker: () => null,
-        }).addTo(map);
-
-        routingControlRef.current = routingControl;
-
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        routingControl.on("routesfound", (e: { routes: any; }) => {
-          console.log("Rota encontrada:", e.routes);
-        });
-
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        routingControl.on("routingerror", (e: { error: any; }) => {
-          console.error("Erro na rota:", e.error);
+        }).addTo(map)
+        
+        routingControlRef.current = routingControl as unknown as L.Routing.Control
+        
+        routingControl.on("routesfound", (e: L.Routing.RoutingEvent) => {
+          const event = e as unknown as L.Routing.RoutingResultEvent
+          console.log("Rota encontrada:", event.routes)
+        })
+        
+        routingControl.on("routingerror", (e: L.Routing.RoutingEvent) => {
+          const event = e as unknown as L.Routing.RoutingErrorEvent
+          console.error("Erro na rota:", event.error)
+        
           if (!polylineRef.current) {
             polylineRef.current = window.L.polyline(routeWaypoints, {
               color: "#6366F1",
               weight: 5,
               opacity: 0.7,
               dashArray: "10, 10",
-            }).addTo(map);
+            }).addTo(map)
           }
-        });
+        })
+        
+        
+        
       } catch (error) {
         console.error("Erro ao criar controle de rota:", error);
       }
