@@ -1,84 +1,212 @@
-# Router Maps
+# 🚚 Planejador de Rotas - Next.js 14 + TypeScript + Leaflet + OSRM
 
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+Este é um projeto de **planejador de rotas** para entregas, utilizando as melhores tecnologias modernas:
 
-## Getting Started
+- ✅ Next.js 14 (App Router)
+- ✅ TypeScript
+- ✅ Leaflet e Leaflet Routing Machine
+- ✅ Shadcn (UI Components)
+- ✅ Tailwind CSS
+- ✅ API pública do OSRM para cálculo de rotas
+- ✅ Recharts para gráficos de estatísticas (opcional)
 
-First, run the development server:
+---
 
+## 📸 Funcionalidades
+
+- Inserir CEP de origem
+- Adicionar múltiplos endereços de entrega via CEP
+- Ordenar endereços com drag & drop (usando @hello-pangea/dnd)
+- Otimizar a sequência das entregas
+- Traçar a rota diretamente no mapa (Leaflet)
+- Exibir estatísticas de distância e tempo total estimado
+- Design responsivo e moderno
+
+---
+
+## 📁 Estrutura principal de pastas
+
+```
+src/
+│
+├─ components/
+│   ├─ leaflet/
+│   ├─ route-planner/
+│   └─ ui/  (shadcn)
+│
+├─ lib/
+│   ├─ route-manager.ts
+│   └─ geocode-service.ts
+│
+├─ types/
+│   ├─ import.ts
+│   ├─ leaflet-routing-machine.d.ts
+│   └─ window.d.ts
+│
+└─ app/
+    └─ route-planner-client.tsx
+```
+
+---
+
+## 🚀 Como rodar o projeto
+
+1. Clone o repositório:
 ```bash
-npm run dev
-# or
-yarn dev
-# or
+git clone <seu-repo>
+cd <seu-repo>
+```
+
+2. Instale as dependências usando `pnpm`:
+```bash
+pnpm install
+```
+
+3. Rode o projeto:
+```bash
 pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
-
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
-
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
-
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
-
-## Conventional Commits
-
-This project follows the [Conventional Commits](https://www.conventionalcommits.org/) specification for commit messages. This helps to create a more readable commit history and enables automatic versioning and changelog generation.
-
-### Commit Message Format
-
-Each commit message consists of a **header**, a **body**, and a **footer**. The header has a special format that includes a **type**, an optional **scope**, and a **subject**:
-
+4. Abra no navegador:
 ```
-<type>(<scope>): <subject>
-
-<body>
-
-<footer>
+http://localhost:3000
 ```
 
-#### Types
+---
 
-- **feat**: A new feature
-- **fix**: A bug fix
-- **docs**: Documentation only changes
-- **style**: Changes that do not affect the meaning of the code (white-space, formatting, etc)
-- **refactor**: A code change that neither fixes a bug nor adds a feature
-- **perf**: A code change that improves performance
-- **test**: Adding missing tests or correcting existing tests
-- **build**: Changes that affect the build system or external dependencies
-- **ci**: Changes to our CI configuration files and scripts
-- **chore**: Other changes that don't modify src or test files
-- **revert**: Reverts a previous commit
+## ⚠ Aviso importante
 
-#### Examples
+> Este projeto utiliza o servidor público de demonstração do OSRM:  
+> `https://router.project-osrm.org`  
+> Ele não é adequado para produção, podendo apresentar instabilidades.  
+> Para produção, utilize seu próprio servidor OSRM ou algum serviço pago.
+
+---
+
+## ✅ Requisitos
+
+- Node.js 18+
+- pnpm 8+
+- Navegador moderno
+- Chave válida de API do Google (se usar autocomplete do geocode)
+
+---
+
+## 🌟 Contribuição
+
+Pull Requests são muito bem-vindos!  
+Sinta-se à vontade para contribuir com melhorias, ajustes de tipagens e sugestões.
+
+---
+
+## 📜 Licença
+
+MIT License.
+
+---
+
+# 🇺🇸 Route Planner - Next.js 14 + TypeScript + Leaflet + OSRM
+
+This is a **delivery route planner** project built with modern technologies:
+
+- ✅ Next.js 14 (App Router)
+- ✅ TypeScript
+- ✅ Leaflet and Leaflet Routing Machine
+- ✅ Shadcn (UI Components)
+- ✅ Tailwind CSS
+- ✅ Public OSRM API for route calculation
+- ✅ Recharts for statistics (optional)
+
+---
+
+## 📸 Features
+
+- Add origin by postal code (CEP)
+- Add multiple delivery addresses by postal code
+- Drag & drop to reorder addresses
+- Optimize delivery route order
+- Draw the route directly on the map
+- Show estimated total distance and time
+- Fully responsive and modern UI
+
+---
+
+## 📁 Folder structure
 
 ```
-feat(map): add marker clustering for better performance
-
-fix(route): correct calculation of return path
-
-docs(readme): update installation instructions
-
-refactor(address-panel): simplify address validation logic
+src/
+│
+├─ components/
+│   ├─ leaflet/
+│   ├─ route-planner/
+│   └─ ui/ (shadcn)
+│
+├─ lib/
+│   ├─ route-manager.ts
+│   └─ geocode-service.ts
+│
+├─ types/
+│   ├─ import.ts
+│   ├─ leaflet-routing-machine.d.ts
+│   └─ window.d.ts
+│
+└─ app/
+    └─ route-planner-client.tsx
 ```
 
-### Commit Validation
+---
 
-This project uses [commitlint](https://commitlint.js.org/) and [husky](https://typicode.github.io/husky/) to validate commit messages. If your commit message doesn't follow the conventional format, it will be rejected.
+## 🚀 How to run
+
+1. Clone the repository:
+```bash
+git clone <your-repo>
+cd <your-repo>
+```
+
+2. Install dependencies with `pnpm`:
+```bash
+pnpm install
+```
+
+3. Run the development server:
+```bash
+pnpm dev
+```
+
+4. Open the app:
+```
+http://localhost:3000
+```
+
+---
+
+## ⚠ Important notice
+
+> This project uses OSRM's public demo server:  
+> `https://router.project-osrm.org`  
+> It is not suitable for production and can be unstable.  
+> For production, host your own OSRM server or use a paid provider.
+
+---
+
+## ✅ Requirements
+
+- Node.js 18+
+- pnpm 8+
+- Modern browser
+- Valid Google API key (if using geocode autocomplete)
+
+---
+
+## 🌟 Contributing
+
+Pull Requests are welcome!  
+Feel free to help with improvements, better typings, and suggestions.
+
+---
+
+## 📜 License
+
+MIT License.
+

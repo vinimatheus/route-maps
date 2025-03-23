@@ -250,3 +250,20 @@
     @apply bg-background text-foreground;
   }
 }
+
+.leaflet-container {
+  z-index: 0 !important;
+}
+
+.leaflet-control {
+  z-index: 0 !important;
+}
+
+.leaflet-pane,
+.leaflet-popup-pane,
+.leaflet-overlay-pane,
+.leaflet-shadow-pane,
+.leaflet-marker-pane,
+.leaflet-tooltip-pane {
+  z-index: 0 !important;
+}
