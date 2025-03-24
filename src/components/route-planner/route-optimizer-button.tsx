@@ -1,8 +1,13 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { Button } from "@/components/ui/button"
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import {
   Dialog,
   DialogContent,
@@ -10,17 +15,20 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog"
-import { Badge } from "@/components/ui/badge"
-import { Loader2, MapPin, RotateCw, CheckCircle2 } from "lucide-react"
-import type { RouteAddress } from "@/lib/route-manager"
-import { optimizeRouteNearestNeighbor, calculateTotalRouteDistance } from "@/lib/route-optimizer"
+} from "@/components/ui/dialog";
+import { Badge } from "@/components/ui/badge";
+import { Loader2, MapPin, RotateCw, CheckCircle2 } from "lucide-react";
+import type { RouteAddress } from "@/lib/route-manager";
+import {
+  optimizeRouteNearestNeighbor,
+  calculateTotalRouteDistance,
+} from "@/lib/route-optimizer";
 
 interface RouteOptimizerButtonProps {
-  origin: RouteAddress | null
-  addresses: RouteAddress[]
-  onOptimizeRoute: (optimizedAddresses: RouteAddress[]) => void
-  disabled?: boolean
+  origin: RouteAddress | null;
+  addresses: RouteAddress[];
+  onOptimizeRoute: (optimizedAddresses: RouteAddress[]) => void;
+  disabled?: boolean;
 }
 
 export function RouteOptimizerButton({
@@ -29,64 +37,59 @@ export function RouteOptimizerButton({
   onOptimizeRoute,
   disabled = false,
 }: RouteOptimizerButtonProps) {
-  const [isOptimizing, setIsOptimizing] = useState(false)
-  const [showConfirmDialog, setShowConfirmDialog] = useState(false)
+  const [isOptimizing, setIsOptimizing] = useState(false);
+  const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   const [optimizationStats, setOptimizationStats] = useState<{
-    originalDistance: number
-    optimizedDistance: number
-    savingsPercent: number
-  } | null>(null)
+    originalDistance: number;
+    optimizedDistance: number;
+    savingsPercent: number;
+  } | null>(null);
 
-  const handleOptimizeRoute = () => {
-    if (!origin || addresses.length < 2 || isOptimizing) return
+  const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
-    setIsOptimizing(true)
+  const handleOptimizeRoute = async () => {
+    if (!origin || addresses.length < 2 || isOptimizing) return;
 
-    // Simula um pequeno atraso para mostrar o estado de carregamento
-    setTimeout(() => {
-      try {
-        // Calcula a distância da rota atual
-        const originalDistance = calculateTotalRouteDistance(origin, addresses)
+    setIsOptimizing(true);
 
-        // Otimiza a rota usando o algoritmo do vizinho mais próximo
-        const optimizedAddresses = optimizeRouteNearestNeighbor(origin, addresses)
+    try {
+      await delay(800); // simula carregamento
 
-        // Calcula a distância da rota otimizada
-        const optimizedDistance = calculateTotalRouteDistance(origin, optimizedAddresses)
+      const originalDistance = calculateTotalRouteDistance(origin, addresses);
+      const optimizedAddresses = optimizeRouteNearestNeighbor(origin, addresses);
+      const optimizedDistance = calculateTotalRouteDistance(origin, optimizedAddresses);
 
-        // Calcula a porcentagem de economia
-        const savingsPercent = ((originalDistance - optimizedDistance) / originalDistance) * 100
+      const savingsPercent =
+        ((originalDistance - optimizedDistance) / originalDistance) * 100;
 
-        // Armazena as estatísticas de otimização
-        setOptimizationStats({
-          originalDistance,
-          optimizedDistance,
-          savingsPercent,
-        })
+      setOptimizationStats({
+        originalDistance,
+        optimizedDistance,
+        savingsPercent,
+      });
 
-        // Mostra o diálogo de confirmação
-        setShowConfirmDialog(true)
-      } catch (error) {
-        console.error("Erro ao otimizar rota:", error)
-      } finally {
-        setIsOptimizing(false)
-      }
-    }, 800)
-  }
+      console.log("Otimização concluída:", {
+        originalDistance,
+        optimizedDistance,
+        savingsPercent,
+      });
+
+      setShowConfirmDialog(true);
+    } catch (error) {
+      console.error("Erro ao otimizar rota:", error);
+    } finally {
+      setIsOptimizing(false);
+    }
+  };
 
   const confirmOptimization = () => {
-    if (!origin || addresses.length < 2) return
+    if (!origin || addresses.length < 2) return;
 
-    // Otimiza a rota usando o algoritmo do vizinho mais próximo
-    const optimizedAddresses = optimizeRouteNearestNeighbor(origin, addresses)
-
-    // Atualiza a rota com os endereços otimizados
-    onOptimizeRoute(optimizedAddresses)
-
-    // Fecha o diálogo
-    setShowConfirmDialog(false)
-    setOptimizationStats(null)
-  }
+    const optimizedAddresses = optimizeRouteNearestNeighbor(origin, addresses);
+    onOptimizeRoute(optimizedAddresses);
+    setShowConfirmDialog(false);
+    setOptimizationStats(null);
+  };
 
   return (
     <>
@@ -122,7 +125,9 @@ export function RouteOptimizerButton({
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle>Otimização de Rota</DialogTitle>
-            <DialogDescription>A rota foi otimizada para minimizar a distância total percorrida.</DialogDescription>
+            <DialogDescription>
+              A rota foi otimizada para minimizar a distância total percorrida.
+            </DialogDescription>
           </DialogHeader>
 
           {optimizationStats && (
@@ -135,23 +140,35 @@ export function RouteOptimizerButton({
 
               <div className="grid grid-cols-2 gap-4 text-center">
                 <div>
-                  <p className="text-sm font-medium text-muted-foreground">Rota Original</p>
-                  <p className="text-2xl font-bold">{optimizationStats.originalDistance.toFixed(1)} km</p>
+                  <p className="text-sm font-medium text-muted-foreground">
+                    Rota Original
+                  </p>
+                  <p className="text-2xl font-bold">
+                    {optimizationStats.originalDistance.toFixed(1)} km
+                  </p>
                 </div>
                 <div>
-                  <p className="text-sm font-medium text-muted-foreground">Rota Otimizada</p>
-                  <p className="text-2xl font-bold">{optimizationStats.optimizedDistance.toFixed(1)} km</p>
+                  <p className="text-sm font-medium text-muted-foreground">
+                    Rota Otimizada
+                  </p>
+                  <p className="text-2xl font-bold">
+                    {optimizationStats.optimizedDistance.toFixed(1)} km
+                  </p>
                 </div>
               </div>
 
               <div className="flex justify-center">
-                <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200 px-3 py-1">
+                <Badge
+                  variant="outline"
+                  className="bg-green-50 text-green-700 border-green-200 px-3 py-1"
+                >
                   Economia de {optimizationStats.savingsPercent.toFixed(1)}%
                 </Badge>
               </div>
 
               <p className="text-sm text-center text-muted-foreground">
-                A ordem de entrega será reordenada para seguir o caminho mais eficiente.
+                A ordem de entrega será reordenada para seguir o caminho mais
+                eficiente.
               </p>
             </div>
           )}
@@ -165,6 +182,5 @@ export function RouteOptimizerButton({
         </DialogContent>
       </Dialog>
     </>
-  )
+  );
 }
-

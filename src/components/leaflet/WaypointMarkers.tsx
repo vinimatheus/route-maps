@@ -21,7 +21,7 @@ export default function WaypointMarkers({
     const map = mapRef.current;
     if (!map || !window.L) return;
 
-    // Limpa markers anteriores
+    // Remove marcadores antigos
     markersRef.current.forEach((marker) => marker.remove());
     markersRef.current = [];
 
@@ -31,43 +31,63 @@ export default function WaypointMarkers({
 
     waypoints.forEach((point, index) => {
       const markerType =
-        index === 0 && showOrderNumbers
+        index === 0
           ? "origin"
           : index === waypoints.length - 1 &&
-            index !== 0 &&
-            showOrderNumbers &&
-            waypoints[0].lat === point.lat &&
-            waypoints[0].lng === point.lng
+            point.lat === waypoints[0].lat &&
+            point.lng === waypoints[0].lng
           ? "return"
           : "destination";
 
+      const iconHtml = `
+        <div class="marker-pin marker-pin-${markerType}">
+          <span class="marker-number">${
+            showOrderNumbers ? index + 1 : ""
+          }</span>
+        </div>
+      `;
+
       const customIcon = window.L.divIcon({
+        html: iconHtml,
         className: "custom-div-icon",
-        html: `
-          <div style="background-color: ${
-            markerType === "origin"
-              ? "#10b981"
-              : markerType === "return"
-              ? "#f59e0b"
-              : "#6366f1"
-          }; color: white; border-radius: 50%; width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; font-weight: bold; border: 2px solid white;">
-            ${
-              showOrderNumbers
-                ? index + 1
-                : '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>'
-            }
-          </div>`,
+        iconSize: [30, 30],
+        iconAnchor: [15, 30],
+        popupAnchor: [0, -30],
       });
 
       const marker = window.L.marker([point.lat, point.lng], {
         icon: customIcon,
       }).addTo(map);
 
-      if (onPinClick) {
-        marker.on("click", () => {
+      const popupContent = `
+  <div style="font-family: system-ui, sans-serif; font-size: 13px; line-height: 1.5; padding: 8px; max-width: 250px;">
+    <div style="margin-bottom: 6px;">
+      <strong>Endereço:</strong> ${
+        point.formattedAddress ?? "Não informado"
+      }<br/>
+      <strong>CEP:</strong> ${point.cep}<br/>
+      <strong>Latitude:</strong> ${point.lat}<br/>
+      <strong>Longitude:</strong> ${point.lng}
+    </div>
+    <button onclick="navigator.clipboard.writeText('Endereço: ${
+      point.formattedAddress ?? "Não informado"
+    } | CEP: ${point.cep} | Lat: ${point.lat} | Lng: ${
+        point.lng
+      }'); this.innerText = 'Copiado!'; setTimeout(() => this.innerText = 'Copiar endereço', 2000);" 
+      style="background-color: #14b8a6; color: white; border: none; padding: 6px 10px; border-radius: 6px; cursor: pointer; transition: background-color 0.2s;">
+      Copiar endereço
+    </button>
+  </div>
+`;
+
+      marker.bindPopup(popupContent);
+
+      marker.on("click", () => {
+        marker.openPopup();
+        if (onPinClick) {
           onPinClick(point);
-        });
-      }
+        }
+      });
 
       markersRef.current.push(marker);
       bounds.extend([point.lat, point.lng]);

@@ -28,7 +28,7 @@ export interface Waypoint {
   description: string;
   formattedAddress: string;
   isGeocoded: boolean;
-  displayInfo?: Record<string, string>; // agora opcional
+  displayInfo?: Record<string, string>;
 }
 
 export function createWaypoints(
@@ -47,7 +47,7 @@ export function createWaypoints(
       description: address.description,
       formattedAddress: address.description || "",
       isGeocoded: address.isGeocoded,
-      displayInfo: {}, // não causa erro e mantém compatível
+      displayInfo: {},
     });
   };
 

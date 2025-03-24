@@ -39,6 +39,7 @@ export function useMapResourcesLoader() {
           "https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.min.js"
         );
 
+        
         if (window.L) {
           console.log("Leaflet e RoutingMachine carregados.");
           setIsMapReady(true);

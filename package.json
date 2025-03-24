@@ -30,6 +30,7 @@
     "clsx": "^2.1.1",
     "cmdk": "^1.0.0",
     "coordenadas-do-cep": "^1.2.0",
+    "framer-motion": "^12.5.0",
     "leaflet": "^1.9.4",
     "leaflet-routing-machine": "^3.2.12",
     "lucide-react": "^0.483.0",

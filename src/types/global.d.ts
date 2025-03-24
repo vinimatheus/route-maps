@@ -8,3 +8,20 @@ declare global {
     }
   }
 }
+
+
+export interface CsvRow {
+  [key: string]: string
+}
+
+export interface ColumnMapping {
+  cep: string
+  description?: string
+}
+
+export interface ResultItem {
+  cep: string
+  description?: string
+  status: "success" | "error"
+  data?: RouteAddress
+}

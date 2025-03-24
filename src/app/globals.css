@@ -123,7 +123,6 @@
   width: 22px;
   height: 22px;
   margin: 4px 0 0 4px;
-  background: white;
   position: absolute;
   border-radius: 50%;
 }
@@ -243,13 +242,64 @@
 }
 
 @layer base {
-  * {
-    @apply border-border outline-ring/50;
-  }
-  body {
-    @apply bg-background text-foreground;
+  :root {
+    --color-teal-50: #f0fdfa;
+    --color-teal-100: #ccfbf1;
+    --color-teal-200: #99f6e4;
+    --color-teal-300: #5eead4;
+    --color-teal-400: #2dd4bf;
+    --color-teal-500: #14b8a6;
+    --color-teal-600: #0d9488;
+    --color-teal-700: #0f766e;
+    --color-teal-800: #115e59;
+    --color-teal-900: #134e4a;
+
+    --color-cyan-50: #ecfeff;
+    --color-cyan-100: #cffafe;
+    --color-cyan-200: #a5f3fc;
+    --color-cyan-300: #67e8f9;
+    --color-cyan-400: #22d3ee;
+    --color-cyan-500: #06b6d4;
+    --color-cyan-600: #0891b2;
+    --color-cyan-700: #0e7490;
+    --color-cyan-800: #155e75;
+    --color-cyan-900: #164e63;
+
+    --color-mint-50: #f3fdf7;
+    --color-mint-100: #d1fae5;
+    --color-mint-200: #a7f3d0;
+    --color-mint-300: #6ee7b7;
+    --color-mint-400: #34d399;
+    --color-mint-500: #10b981;
+    --color-mint-600: #059669;
+    --color-mint-700: #047857;
+    --color-mint-800: #065f46;
+    --color-mint-900: #064e3b;
+
+    /* Novo esquema usado nos botões e bordas elegantes */
+    --color-primary-modern: var(--color-teal-500);
+    --color-primary-modern-hover: var(--color-teal-600);
+    --color-accent-modern: var(--color-cyan-300);
+    --color-accent-modern-hover: var(--color-cyan-400);
   }
 }
+
+.leaflet-popup-content {
+  font-family: system-ui, sans-serif;
+  line-height: 1.5;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  padding: 8px;
+}
+
+.leaflet-popup-content button {
+  transition: all 0.2s;
+}
+
+.leaflet-popup-content button:hover {
+  background-color: #0d9488; /* Hover mais escuro */
+}
+
 
 .leaflet-container {
   z-index: 0 !important;
@@ -266,4 +316,59 @@
 .leaflet-marker-pane,
 .leaflet-tooltip-pane {
   z-index: 0 !important;
+}
+
+.marker-pin {
+  width: 30px;
+  height: 30px;
+  border-radius: 50% 50% 50% 0;
+  position: absolute;
+  transform: rotate(-45deg);
+  left: 50%;
+  top: 50%;
+  margin: -15px 0 0 -15px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 0 6px rgba(0, 0, 0, 0.2);
+  cursor: pointer;
+  transition: transform 0.2s ease;
+}
+
+.marker-pin-origin {
+  background-color: #10b981; /* Verde para origem */
+  color: white;
+  animation: pulse-green 2s infinite;
+}
+
+.marker-pin-return {
+  background-color: #f59e0b; /* Laranja para retorno */
+}
+
+.marker-pin-destination {
+  background-color: #6366f1; /* Azul-indigo para entregas */
+}
+
+.marker-number {
+  transform: rotate(45deg);
+  color: white;
+  font-weight: bold;
+  font-size: 12px;
+  z-index: 1;
+}
+
+.marker-pin:hover {
+  transform: rotate(-45deg) scale(1.1);
+}
+
+@keyframes pulse-green {
+  0% {
+    box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7);
+  }
+  70% {
+    box-shadow: 0 0 0 10px rgba(16, 185, 129, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(16, 185, 129, 0);
+  }
 }

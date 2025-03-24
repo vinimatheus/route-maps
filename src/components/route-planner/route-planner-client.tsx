@@ -15,12 +15,13 @@ import { cn } from "@/lib/utils";
 import type { ParsedAddress } from "@/types/import";
 import LoadingOverlay from "../leaflet/LoadingOverlay";
 
-const LeafletMap = dynamic(async () => (await import("@/components/leaflet/map")).default, {
-  ssr: false,
-  loading: () => <LoadingOverlay />,
-});
-
-
+const LeafletMap = dynamic(
+  async () => (await import("@/components/leaflet/map")).default,
+  {
+    ssr: false,
+    loading: () => <LoadingOverlay />,
+  }
+);
 
 export default function RoutePlannerClient() {
   const [originCep, setOriginCep] = useState("");
@@ -124,9 +125,9 @@ export default function RoutePlannerClient() {
 
   const calculateRoute = async (forceReturn = false) => {
     if (!origin || addresses.length < 1 || isCalculatingRoute) return;
-  
+
     setIsCalculatingRoute(true);
-  
+
     try {
       const points = createWaypoints(origin, addresses, forceReturn);
       setWaypoints(
@@ -140,11 +141,9 @@ export default function RoutePlannerClient() {
           displayInfo: { origem: p.description },
         }))
       );
-  
-      // Dispara uma atualização imediata
+
       setRouteKey((prev) => prev + 1);
-  
-      // Dispara uma atualização forçada após pequeno delay
+
       setTimeout(() => {
         console.log("Forçando novo update no routeKey após delay.");
         setRouteKey((prev) => prev + 1);
@@ -155,7 +154,6 @@ export default function RoutePlannerClient() {
       setIsCalculatingRoute(false);
     }
   };
-  
 
   const togglePanel = () => {
     setIsPanelExpanded(!isPanelExpanded);
@@ -167,62 +165,49 @@ export default function RoutePlannerClient() {
   };
 
   return (
-    <div className="flex min-h-screen bg-gradient-to-br from-background via-background/80 to-primary/5">
-      <div className="container mx-auto p-4 md:p-6 lg:p-8 flex flex-col">
-        <header className="mb-8 animate-fadeIn">
-          <h1 className="text-4xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary to-primary/70 mb-2">
-            Planejador de Rotas
-          </h1>
-          <p className="text-muted-foreground text-lg">
-            Organize suas entregas de forma eficiente
-          </p>
-          <div className="h-1 w-32 bg-gradient-to-r from-primary to-transparent rounded-full mt-3"></div>
-        </header>
+    <div className="flex min-h-screen h-screen bg-gradient-to-br from-background via-background/80 to-primary/5">
+      <div className="flex flex-col lg:flex-row gap-6 flex-1 w-full p-4 md:p-6 lg:p-8">
+        <div
+          className={cn(
+            "transition-all duration-300 ease-in-out",
+            isPanelExpanded ? "lg:w-1/3" : "lg:w-[120px]"
+          )}
+        >
+          <AddressPanel
+            originCep={originCep}
+            setOriginCep={setOriginCep}
+            origin={origin}
+            originError={originError}
+            isLoadingOrigin={isLoadingOrigin}
+            handleAddOrigin={handleAddOrigin}
+            addressCep={addressCep}
+            setAddressCep={setAddressCep}
+            addressError={addressError}
+            isLoadingAddress={isLoadingAddress}
+            handleAddAddress={handleAddAddress}
+            addresses={addresses}
+            handleRemoveAddress={handleRemoveAddress}
+            handleDragEnd={handleDragEnd}
+            calculateRoute={calculateRoute}
+            isCalculatingRoute={isCalculatingRoute}
+            isPanelExpanded={isPanelExpanded}
+            togglePanel={togglePanel}
+            setAddresses={setAddresses}
+            onOptimizeRoute={onOptimizeRoute}
+          />
+        </div>
 
-        <div className="flex flex-col lg:flex-row gap-6 flex-1">
-          <div
-            className={cn(
-              "transition-all duration-300 ease-in-out",
-              isPanelExpanded ? "lg:w-1/3" : "lg:w-[120px]"
-            )}
-          >
-            <AddressPanel
-              originCep={originCep}
-              setOriginCep={setOriginCep}
-              origin={origin}
-              originError={originError}
-              isLoadingOrigin={isLoadingOrigin}
-              handleAddOrigin={handleAddOrigin}
-              addressCep={addressCep}
-              setAddressCep={setAddressCep}
-              addressError={addressError}
-              isLoadingAddress={isLoadingAddress}
-              handleAddAddress={handleAddAddress}
-              addresses={addresses}
-              handleRemoveAddress={handleRemoveAddress}
-              handleDragEnd={handleDragEnd}
-              calculateRoute={calculateRoute}
-              isCalculatingRoute={isCalculatingRoute}
-              isPanelExpanded={isPanelExpanded}
-              togglePanel={togglePanel}
-              setAddresses={setAddresses}
-              onOptimizeRoute={onOptimizeRoute}
-            />
-          </div>
-
-          <div
-            className={cn(
-              "flex-1 transition-all duration-300 ease-in-out",
-              isPanelExpanded ? "lg:w-2/3" : "lg:w-[calc(100%-120px)]"
-            )}
-          >
-            <RouteMap
-              LeafletMap={LeafletMap}
-              waypoints={waypoints}
-              routeKey={routeKey}
-            />
-            
-          </div>
+        <div
+          className={cn(
+            "flex-1 h-full transition-all duration-300",
+            isPanelExpanded ? "lg:w-2/3" : "lg:w-[calc(100%-120px)]"
+          )}
+        >
+          <RouteMap
+            LeafletMap={LeafletMap}
+            waypoints={waypoints}
+            routeKey={routeKey}
+          />
         </div>
       </div>
     </div>
