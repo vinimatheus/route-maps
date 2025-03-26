@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import type { DropResult } from "@hello-pangea/dnd";
 import dynamic from "next/dynamic";
 import {
@@ -157,7 +157,7 @@ export default function RoutePlannerClient() {
     setAddresses(updatedItems);
   };
 
-  const calculateRoute = async (forceReturn = false) => {
+  const calculateRoute = useCallback(async (forceReturn = false) => {
     if (!origin || addresses.length < 1 || isCalculatingRoute) return;
 
     setIsCalculatingRoute(true);
@@ -187,13 +187,13 @@ export default function RoutePlannerClient() {
     } finally {
       setIsCalculatingRoute(false);
     }
-  };
+  }, [origin, addresses, isCalculatingRoute, setWaypoints, setRouteKey, setIsCalculatingRoute]);
 
   useEffect(() => {
     if (origin && addresses.length > 0) {
       calculateRoute();
     }
-  }, [addresses]); 
+  }, [addresses, calculateRoute, origin]); 
 
   const togglePanel = () => {
     setIsPanelExpanded(!isPanelExpanded);

@@ -35,7 +35,7 @@ export default function MapContainer() {
         mapRef.current!.invalidateSize();
       }, 350); // espera animação do sidebar
     }
-  }, [state]);
+  }, [state, mapRef]);
 
   return <div id="map" className="h-full w-full" />;
 }
