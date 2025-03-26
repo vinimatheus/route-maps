@@ -1,22 +1,34 @@
 import { type NextRequest, NextResponse } from "next/server"
 import type { GoogleGeocodeResponse } from "@/types/google-maps"
 
-// Cache para armazenar resultados de geocodificação e reduzir chamadas à API
-const geocodeCache = new Map<string, GoogleGeocodeResponse>()
-// Contador para limitar taxa de requisições
+const CACHE_TTL = 1000 * 60 * 60 // 1 hora
+const geocodeCache = new Map<string, { data: GoogleGeocodeResponse; timestamp: number }>()
 const requestCounts = new Map<string, { count: number; timestamp: number; resetTime?: number }>()
 
-/**
- * Função para geocodificar endereços usando a API do Google Maps
- * Implementa cache, validação de entrada e limitação de taxa
- */
+// Função auxiliar para validar o endereço
+function isValidAddress(address: string): boolean {
+  // Remove caracteres especiais e verifica comprimento mínimo
+  const sanitized = address.replace(/[^\w\s-]/g, '').trim()
+  return sanitized.length >= 3 && sanitized.length <= 200
+}
+
 export async function GET(request: NextRequest) {
   try {
-    // Obter IP do cliente para limitação de taxa
     const clientIp = request.headers.get("x-forwarded-for") || "unknown"
+    const userAgent = request.headers.get("user-agent") || "unknown"
 
-    // Verificar limitação de taxa (máximo de 20 requisições por minuto por IP)
-    // Aumentado de 10 para 20 para permitir mais requisições
+    // Validação básica de User-Agent
+    if (!userAgent || userAgent === "unknown") {
+      return NextResponse.json({ error: "Invalid request" }, { 
+        status: 400,
+        headers: {
+          'X-Content-Type-Options': 'nosniff',
+          'X-Frame-Options': 'DENY',
+          'Content-Security-Policy': "default-src 'none'",
+        }
+      })
+    }
+
     if (!checkRateLimit(clientIp, 20, 60000)) {
       const record = requestCounts.get(clientIp)
       const resetTime = record?.resetTime || Date.now() + 60000
@@ -31,6 +43,8 @@ export async function GET(request: NextRequest) {
           status: 429,
           headers: {
             "Retry-After": String(secondsToReset),
+            'X-Content-Type-Options': 'nosniff',
+            'X-Frame-Options': 'DENY',
           },
         },
       )
@@ -39,31 +53,57 @@ export async function GET(request: NextRequest) {
     const searchParams = request.nextUrl.searchParams
     const address = searchParams.get("address")
 
-    // Validação de entrada
-    if (!address || address.trim().length < 3) {
-      return NextResponse.json({ error: "Address is required and must be at least 3 characters" }, { status: 400 })
+    if (!address || !isValidAddress(address)) {
+      return NextResponse.json(
+        { error: "Endereço inválido ou muito curto" }, 
+        { 
+          status: 400,
+          headers: {
+            'X-Content-Type-Options': 'nosniff',
+            'X-Frame-Options': 'DENY',
+          }
+        }
+      )
     }
 
-    // Verificar se o resultado está em cache
     const cacheKey = address.toLowerCase().trim()
-    if (geocodeCache.has(cacheKey)) {
-      return NextResponse.json(geocodeCache.get(cacheKey))
+    const cachedResult = geocodeCache.get(cacheKey)
+    
+    if (cachedResult) {
+      // Verifica se o cache ainda é válido
+      if (Date.now() - cachedResult.timestamp < CACHE_TTL) {
+        return NextResponse.json(cachedResult.data, {
+          headers: {
+            'X-Content-Type-Options': 'nosniff',
+            'X-Frame-Options': 'DENY',
+            'Cache-Control': 'private, max-age=3600',
+          }
+        })
+      } else {
+        geocodeCache.delete(cacheKey)
+      }
     }
 
-    // Obter a chave da API do ambiente
     const apiKey = process.env.GOOGLE_MAPS_API_KEY
 
     if (!apiKey) {
       console.error("Google Maps API key is not configured")
-      return NextResponse.json({ error: "API configuration error" }, { status: 500 })
+      return NextResponse.json(
+        { error: "API configuration error" }, 
+        { 
+          status: 500,
+          headers: {
+            'X-Content-Type-Options': 'nosniff',
+            'X-Frame-Options': 'DENY',
+          }
+        }
+      )
     }
 
-    // Construir URL com parâmetros sanitizados
     const url = `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(address)}&key=${apiKey}`
 
-    // Fazer a requisição com timeout
     const controller = new AbortController()
-    const timeoutId = setTimeout(() => controller.abort(), 5000) // 5 segundos de timeout
+    const timeoutId = setTimeout(() => controller.abort(), 5000)
 
     const response = await fetch(url, {
       signal: controller.signal,
@@ -81,39 +121,50 @@ export async function GET(request: NextRequest) {
 
     const data = await response.json()
 
-    // Tratar diferentes status da API do Google Maps
     if (data.status !== "OK") {
       console.error("Google Geocoding API error:", data.status, data.error_message)
-      
+
       const errorResponse: GoogleGeocodeResponse = {
         status: data.status,
         results: [],
-        error_message: data.error_message || "Endereço não encontrado"
+        error_message: data.error_message || "Endereço não encontrado",
       }
 
-      // Cache resultados negativos para evitar requisições repetidas
-      geocodeCache.set(cacheKey, errorResponse)
+      geocodeCache.set(cacheKey, { data: errorResponse, timestamp: Date.now() })
 
-      return NextResponse.json(errorResponse, { status: 200 })
+      return NextResponse.json(errorResponse, { 
+        status: 200,
+        headers: {
+          'X-Content-Type-Options': 'nosniff',
+          'X-Frame-Options': 'DENY',
+          'Cache-Control': 'private, max-age=3600',
+        }
+      })
     }
 
-    // Armazenar resultado em cache
-    geocodeCache.set(cacheKey, data)
+    geocodeCache.set(cacheKey, { data, timestamp: Date.now() })
 
-    // Limitar o tamanho do cache (máximo 100 entradas)
+    // Limpa cache antigo se necessário
     if (geocodeCache.size > 100) {
-      const iterator = geocodeCache.keys()
-      const firstKey = iterator.next().value
-      if (firstKey) {
-        geocodeCache.delete(firstKey)
+      const now = Date.now()
+      for (const [key, value] of geocodeCache.entries()) {
+        if (now - value.timestamp > CACHE_TTL) {
+          geocodeCache.delete(key)
+        }
       }
     }
 
-    return NextResponse.json(data)
+    return NextResponse.json(data, {
+      headers: {
+        'X-Content-Type-Options': 'nosniff',
+        'X-Frame-Options': 'DENY',
+        'Cache-Control': 'private, max-age=3600',
+        'Strict-Transport-Security': 'max-age=31536000; includeSubDomains',
+      }
+    })
   } catch (error: unknown) {
     console.error("Error geocoding address:", error)
 
-    // Tratamento específico para timeout
     if (error instanceof Error && error.name === "AbortError") {
       return NextResponse.json({ error: "Request timeout. Please try again." }, { status: 408 })
     }
@@ -123,18 +174,10 @@ export async function GET(request: NextRequest) {
   }
 }
 
-/**
- * Função para verificar limitação de taxa
- * @param key Identificador único (IP do cliente)
- * @param limit Número máximo de requisições permitidas no período
- * @param windowMs Período de tempo em milissegundos
- * @returns Booleano indicando se a requisição está dentro do limite
- */
 function checkRateLimit(key: string, limit: number, windowMs: number): boolean {
   const now = Date.now()
   const record = requestCounts.get(key) || { count: 0, timestamp: now }
 
-  // Resetar contador se o período expirou
   if (now - record.timestamp > windowMs) {
     record.count = 1
     record.timestamp = now
@@ -142,11 +185,9 @@ function checkRateLimit(key: string, limit: number, windowMs: number): boolean {
     return true
   }
 
-  // Incrementar contador e verificar limite
   record.count++
   requestCounts.set(key, record)
 
-  // Se exceder o limite, adiciona um timestamp para quando o limite será resetado
   if (record.count > limit) {
     record.resetTime = record.timestamp + windowMs
     requestCounts.set(key, record)
@@ -154,4 +195,3 @@ function checkRateLimit(key: string, limit: number, windowMs: number): boolean {
 
   return record.count <= limit
 }
-

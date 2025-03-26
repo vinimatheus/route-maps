@@ -27,14 +27,22 @@ export default function RouteControl({ waypoints, showRoute }: RouteControlProps
 
     console.log("Criando rota no mapa...");
 
-    // Limpa controles e polylines anteriores
-    if (routingControlRef.current) {
-      map.removeControl(routingControlRef.current);
+    // Limpa controles e polylines anteriores com verificações de segurança
+    if (routingControlRef.current && map) {
+      try {
+        map.removeControl(routingControlRef.current);
+      } catch (error) {
+        console.warn("Erro ao remover controle de rota:", error);
+      }
       routingControlRef.current = null;
     }
 
     if (polylineRef.current) {
-      polylineRef.current.remove();
+      try {
+        polylineRef.current.remove();
+      } catch (error) {
+        console.warn("Erro ao remover polyline:", error);
+      }
       polylineRef.current = null;
     }
 

@@ -1,42 +1,41 @@
 "use client";
 
 import { useEffect } from "react";
-import { useLeafletMap } from "./LeafletMapContext";
+import { useLeafletMap } from "@/components/leaflet/LeafletMapContext";
+import { useSidebar } from "@/components/ui/sidebar";
 
 export default function MapContainer() {
   const { mapRef, setMapReady } = useLeafletMap();
+  const { state } = useSidebar(); // ✅ ouvir o sidebar expand/collapse
 
   useEffect(() => {
     if (mapRef.current || !window.L) return;
-  
-    console.log("Criando mapa Leaflet...");
+
     const map = window.L.map("map", {
       center: [-23.55052, -46.633308],
       zoom: 12,
+      zoomControl: false,
+      attributionControl: false,
     });
-  
+
     window.L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-      attribution: '&copy; OpenStreetMap contributors',
+      attribution: "&copy; OpenStreetMap contributors",
     }).addTo(map);
-  
+
     mapRef.current = map;
     setMapReady(true);
-  
-    setTimeout(() => {
-      map.invalidateSize();
-    }, 500);
-  }, [mapRef, setMapReady]);
-  
 
-  // ✅ Aqui você adiciona o efeito para atualizar o tamanho sempre que waypoints mudarem:
+    setTimeout(() => map.invalidateSize(), 500);
+  }, [mapRef, setMapReady]);
+
+  // ✅ Sempre que o sidebar for expandido ou minimizado
   useEffect(() => {
-    const map = mapRef.current;
-    if (map) {
+    if (mapRef.current) {
       setTimeout(() => {
-        map.invalidateSize();
-      }, 500);
+        mapRef.current!.invalidateSize();
+      }, 350); // espera animação do sidebar
     }
-  }, [mapRef]);
+  }, [state]);
 
   return <div id="map" className="h-full w-full" />;
 }

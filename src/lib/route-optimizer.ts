@@ -1,128 +1,111 @@
-/**
- * Route Optimizer
- * Implementa algoritmos para otimização de rotas de entrega
- */
-
 import type { RouteAddress } from "./route-manager"
 
-/**
- * Calcula a distância entre dois pontos usando a fórmula de Haversine
- * Esta fórmula considera a curvatura da Terra para calcular distâncias precisas
- * @param lat1 Latitude do ponto 1
- * @param lng1 Longitude do ponto 1
- * @param lat2 Latitude do ponto 2
- * @param lng2 Longitude do ponto 2
- * @returns Distância em quilômetros
- */
 export function calculateDistance(lat1: number, lng1: number, lat2: number, lng2: number): number {
-  // Raio da Terra em km
   const R = 6371
-
-  // Converter coordenadas de graus para radianos
   const dLat = toRadians(lat2 - lat1)
   const dLng = toRadians(lng2 - lng1)
-
-  // Fórmula de Haversine
   const a =
     Math.sin(dLat / 2) * Math.sin(dLat / 2) +
     Math.cos(toRadians(lat1)) * Math.cos(toRadians(lat2)) * Math.sin(dLng / 2) * Math.sin(dLng / 2)
-
   const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
-  const distance = R * c
-
-  return distance
+  return R * c
 }
 
-/**
- * Converte graus para radianos
- */
 function toRadians(degrees: number): number {
   return (degrees * Math.PI) / 180
 }
 
-/**
- * Algoritmo do Vizinho Mais Próximo (Nearest Neighbor)
- * Um algoritmo guloso que sempre escolhe o próximo ponto mais próximo
- * @param origin Ponto de origem
- * @param addresses Lista de endereços a serem ordenados
- * @returns Lista de endereços ordenados pelo caminho mais curto
- */
 export function optimizeRouteNearestNeighbor(origin: RouteAddress, addresses: RouteAddress[]): RouteAddress[] {
   if (!origin || !addresses.length) return []
-
-  // Cria uma cópia dos endereços para não modificar o original
   const unvisitedAddresses = [...addresses]
   const optimizedRoute: RouteAddress[] = []
+  let currentPoint = { lat: origin.lat!, lng: origin.lng! }
 
-  // Ponto atual começa na origem
-  let currentPoint = {
-    lat: origin.lat!,
-    lng: origin.lng!,
-  }
-
-  // Enquanto houver endereços não visitados
   while (unvisitedAddresses.length > 0) {
-    // Encontra o endereço mais próximo do ponto atual
     let nearestIndex = 0
     let shortestDistance = Number.MAX_VALUE
 
     for (let i = 0; i < unvisitedAddresses.length; i++) {
       const address = unvisitedAddresses[i]
-      const distance = calculateDistance(currentPoint.lat, currentPoint.lng, address.lat!, address.lng!)
-
+      // Calcular distância considerando barreiras geográficas
+      const distance = calculateGeographicallyAwareDistance(currentPoint.lat, currentPoint.lng, address.lat!, address.lng!)
       if (distance < shortestDistance) {
         shortestDistance = distance
         nearestIndex = i
       }
     }
 
-    // Adiciona o endereço mais próximo à rota otimizada
     const nearestAddress = unvisitedAddresses.splice(nearestIndex, 1)[0]
     optimizedRoute.push(nearestAddress)
-
-    // Atualiza o ponto atual
-    currentPoint = {
-      lat: nearestAddress.lat!,
-      lng: nearestAddress.lng!,
-    }
+    currentPoint = { lat: nearestAddress.lat!, lng: nearestAddress.lng! }
   }
 
-  // Atualiza a ordem de entrega
   return optimizedRoute.map((address, index) => ({
     ...address,
     deliveryOrder: index + 1,
   }))
 }
 
-/**
- * Calcula a distância total de uma rota
- * @param origin Ponto de origem
- * @param addresses Lista de endereços na ordem da rota
- * @param returnToOrigin Se deve retornar à origem no final
- * @returns Distância total em quilômetros
- */
+// Função que considera barreiras geográficas para calcular distâncias mais realistas
+export function calculateGeographicallyAwareDistance(lat1: number, lng1: number, lat2: number, lng2: number): number {
+  // Calcular a distância básica usando Haversine
+  const baseDistance = calculateDistance(lat1, lng1, lat2, lng2)
+  
+  // Verificar se os pontos estão em regiões que exigem considerações especiais
+  // Exemplo: Macapá e Manaus são separados pelo Rio Amazonas e floresta densa
+  const isMacapaToManaus = isBetweenRegions(lat1, lng1, lat2, lng2, 
+    { lat: 0.0356, lng: -51.0705 }, // Aproximadamente Macapá
+    { lat: -3.1190, lng: -60.0217 }  // Aproximadamente Manaus
+  )
+  
+  if (isMacapaToManaus) {
+    // Aplicar um fator de correção para considerar a rota real por estradas/rios
+    return baseDistance * 1.8 // Aumenta a "distância efetiva" em 80%
+  }
+  
+  // Verificar outras regiões problemáticas e aplicar fatores de correção
+  // Adicionar mais verificações conforme necessário para outras regiões
+  
+  return baseDistance
+}
+
+// Função auxiliar para verificar se dois pontos estão entre duas regiões específicas
+function isBetweenRegions(
+  lat1: number, lng1: number, 
+  lat2: number, lng2: number,
+  regionA: {lat: number, lng: number},
+  regionB: {lat: number, lng: number}
+): boolean {
+  // Verificar se os pontos estão próximos das regiões especificadas
+  const isPoint1NearRegionA = calculateDistance(lat1, lng1, regionA.lat, regionA.lng) < 100
+  const isPoint2NearRegionA = calculateDistance(lat2, lng2, regionA.lat, regionA.lng) < 100
+  const isPoint1NearRegionB = calculateDistance(lat1, lng1, regionB.lat, regionB.lng) < 100
+  const isPoint2NearRegionB = calculateDistance(lat2, lng2, regionB.lat, regionB.lng) < 100
+  
+  // Se um ponto está próximo de A e outro próximo de B, então estão entre as regiões
+  return (isPoint1NearRegionA && isPoint2NearRegionB) || (isPoint1NearRegionB && isPoint2NearRegionA)
+}
+
 export function calculateTotalRouteDistance(
   origin: RouteAddress,
   addresses: RouteAddress[],
   returnToOrigin = false,
 ): number {
   if (!origin || !addresses.length) return 0
-
   let totalDistance = 0
   let previousPoint = { lat: origin.lat!, lng: origin.lng! }
 
-  // Calcula a distância entre cada ponto da rota
   for (const address of addresses) {
-    const distance = calculateDistance(previousPoint.lat, previousPoint.lng, address.lat!, address.lng!)
+    // Usar a função que considera barreiras geográficas
+    const distance = calculateGeographicallyAwareDistance(previousPoint.lat, previousPoint.lng, address.lat!, address.lng!)
     totalDistance += distance
     previousPoint = { lat: address.lat!, lng: address.lng! }
   }
 
-  // Se deve retornar à origem, adiciona a distância do último ponto até a origem
   if (returnToOrigin) {
-    totalDistance += calculateDistance(previousPoint.lat, previousPoint.lng, origin.lat!, origin.lng!)
+    // Usar a função que considera barreiras geográficas para o retorno
+    totalDistance += calculateGeographicallyAwareDistance(previousPoint.lat, previousPoint.lng, origin.lat!, origin.lng!)
   }
 
   return totalDistance
 }
-

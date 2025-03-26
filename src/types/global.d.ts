@@ -19,9 +19,10 @@ export interface ColumnMapping {
   description?: string
 }
 
-export interface ResultItem {
-  cep: string
-  description?: string
-  status: "success" | "error"
-  data?: RouteAddress
+interface ResultItem {
+  cep: string;
+  description?: string;
+  status: "success" | "error";
+  data?: RouteAddress;
+  errorMessage?: string; // ✅ Adiciona esta linha!
 }

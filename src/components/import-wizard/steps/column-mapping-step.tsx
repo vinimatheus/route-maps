@@ -3,24 +3,23 @@
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
-import {
   FileSpreadsheet,
-  Info,
   ChevronRight,
   ArrowLeft,
   Table2,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { motion } from "framer-motion";
+import {
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem,
+} from "@/components/ui/select";
 
 interface ColumnMapping {
   cep: string;
-  description?: string;
 }
 
 interface CsvRow {
@@ -50,101 +49,60 @@ export function ColumnMappingStep({
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-xl font-bold text-slate-700">Mapeie as colunas</h2>
-          <p className="text-xs text-muted-foreground mt-1">
-            Selecione as colunas correspondentes aos dados do CSV
+          <h2 className="text-xl font-semibold text-gray-800">
+            Mapeie a coluna de CEP
+          </h2>
+          <p className="text-xs text-gray-500 mt-1">
+            Selecione a coluna do arquivo que contém os CEPs
           </p>
         </div>
 
-        <Badge className="flex items-center gap-1.5 bg-teal-100 text-teal-700 px-2 py-1 text-xs rounded-md">
+        <Badge className="flex items-center gap-1.5 bg-indigo-100 border border-indigo-200 text-indigo-700 px-2 py-1 text-xs rounded-md">
           <FileSpreadsheet className="w-4 h-4" />
           <span className="max-w-[150px] truncate">{file?.name}</span>
         </Badge>
       </div>
 
-      <div className="grid grid-cols-2 gap-4">
-        <div className="space-y-1.5">
-          <label className="block text-xs font-medium text-slate-600">
-            Coluna de CEP <span className="text-red-500">*</span>
-          </label>
-          <div className="relative">
-            <select
-              className="w-full border p-2.5 pr-8 rounded-md bg-white focus:ring-2 focus:ring-teal-300 text-sm shadow-sm"
-              value={columnMapping.cep}
-              onChange={(e) =>
-                setColumnMapping({ ...columnMapping, cep: e.target.value })
-              }
-            >
-              <option value="">Selecione...</option>
-              {csvColumns.map((col) => (
-                <option key={col} value={col}>
-                  {col}
-                </option>
-              ))}
-            </select>
-            <div className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400">
-              ▼
-            </div>
-          </div>
-        </div>
-
-        <div className="space-y-1.5">
-          <div className="flex items-center gap-1">
-            <label className="text-xs font-medium text-slate-600">
-              Descrição (opcional)
-            </label>
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger>
-                  <Info className="w-3 h-3 text-slate-400" />
-                </TooltipTrigger>
-                <TooltipContent className="text-xs text-slate-600 bg-white border shadow-sm">
-                  O texto desta coluna será exibido no lugar do CEP, se preenchido.
-                </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
-          </div>
-          <div className="relative">
-            <select
-              className="w-full border p-2.5 pr-8 rounded-md bg-white focus:ring-2 focus:ring-cyan-300 text-sm shadow-sm"
-              value={columnMapping.description || ""}
-              onChange={(e) =>
-                setColumnMapping({
-                  ...columnMapping,
-                  description: e.target.value || undefined,
-                })
-              }
-            >
-              <option value="">Nenhuma</option>
-              {csvColumns.map((col) => (
-                <option key={col} value={col}>
-                  {col}
-                </option>
-              ))}
-            </select>
-            <div className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400">
-              ▼
-            </div>
-          </div>
-        </div>
+      <div className="space-y-2">
+        <label className="block text-xs uppercase tracking-wide font-medium text-gray-600">
+          Coluna de CEP <span className="text-red-500">*</span>
+        </label>
+        <Select
+          value={columnMapping.cep}
+          onValueChange={(value) =>
+            setColumnMapping({ ...columnMapping, cep: value })
+          }
+        >
+          <SelectTrigger className="w-full">
+            <SelectValue placeholder="Selecione a coluna" />
+          </SelectTrigger>
+          <SelectContent>
+            {csvColumns.map((col) => (
+              <SelectItem key={col} value={col}>
+                {col}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </div>
 
-      <div className="mt-6 border rounded-md shadow-sm overflow-hidden bg-white">
-        <div className="flex items-center gap-2 px-3 py-2 border-b bg-muted/20">
-          <Table2 className="w-4 h-4 text-teal-600" />
-          <h3 className="text-xs font-medium text-slate-600">Pré-visualização</h3>
+      <div className="mt-6 border rounded-xl shadow-md overflow-hidden bg-white">
+        <div className="flex items-center gap-2 px-4 py-3 border-b bg-slate-100">
+          <Table2 className="w-4 h-4 text-indigo-500" />
+          <h3 className="text-xs font-semibold text-gray-700 uppercase tracking-wide">
+            Pré-visualização
+          </h3>
         </div>
         <div className="overflow-x-auto custom-scrollbar">
           <table className="min-w-full divide-y text-xs">
-            <thead className="bg-muted/30">
+            <thead className="bg-slate-50">
               <tr>
                 {csvColumns.map((col) => (
                   <th
                     key={col}
                     className={cn(
-                      "px-3 py-2 text-left font-semibold text-slate-500",
-                      (col === columnMapping.cep || col === columnMapping.description) &&
-                        "bg-teal-50 text-teal-700"
+                      "px-3 py-2 text-left font-semibold text-gray-600",
+                      col === columnMapping.cep && "bg-indigo-50 text-indigo-700"
                     )}
                   >
                     {col}
@@ -159,10 +117,13 @@ export function ColumnMappingStep({
                   initial={{ opacity: 0, y: 5 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.2, delay: i * 0.02 }}
-                  className="hover:bg-muted/10 transition"
+                  className="hover:bg-slate-100 transition"
                 >
                   {csvColumns.map((col) => (
-                    <td key={col} className="px-3 py-2 text-slate-600 truncate">
+                    <td
+                      key={col}
+                      className="px-3 py-2 text-gray-700 truncate max-w-[180px]"
+                    >
                       {row[col] || "-"}
                     </td>
                   ))}
@@ -178,7 +139,7 @@ export function ColumnMappingStep({
           variant="outline"
           size="sm"
           onClick={resetWizard}
-          className="flex items-center gap-1"
+          className="flex items-center gap-1 text-gray-600 hover:text-gray-800"
         >
           <ArrowLeft className="w-4 h-4" />
           Voltar
@@ -187,7 +148,7 @@ export function ColumnMappingStep({
           onClick={processCsv}
           disabled={!columnMapping.cep}
           size="sm"
-          className="bg-teal-500 hover:bg-teal-600 text-white flex items-center gap-1 shadow-sm hover:scale-105 transition rounded-md"
+          className="bg-gradient-to-r from-indigo-500 to-cyan-400 hover:from-indigo-600 hover:to-cyan-500 text-white flex items-center gap-2 shadow-md hover:scale-105 hover:shadow-xl transition rounded-xl px-4 py-2"
         >
           Validar
           <ChevronRight className="w-4 h-4" />

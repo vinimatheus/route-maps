@@ -38,10 +38,10 @@ export function ImportMethodStep({
   return (
     <div className="space-y-6">
       <div className="text-center mb-4">
-        <h2 className="text-xl font-bold text-slate-700 mb-1">
+        <h2 className="text-xl font-semibold text-gray-800 mb-1">
           Importar endereços
         </h2>
-        <p className="text-sm text-muted-foreground">
+        <p className="text-sm text-gray-500">
           Escolha a forma de adicionar endereços
         </p>
       </div>
@@ -51,17 +51,17 @@ export function ImportMethodStep({
         onValueChange={(v) => setImportMethod(v as "file" | "manual")}
         className="w-full"
       >
-        <TabsList className="grid w-full grid-cols-2 mb-4 p-1 bg-muted/30 rounded-md shadow-inner">
+        <TabsList className="grid w-full grid-cols-2 mb-4 p-1 bg-slate-100 rounded-xl shadow-inner">
           <TabsTrigger
             value="file"
-            className="flex items-center gap-1 py-2 text-xs data-[state=active]:bg-white data-[state=active]:shadow"
+            className="flex items-center gap-2 py-2 text-xs font-medium data-[state=active]:bg-white data-[state=active]:shadow data-[state=active]:text-indigo-600"
           >
             <FileSpreadsheet className="w-4 h-4" />
             Arquivo CSV
           </TabsTrigger>
           <TabsTrigger
             value="manual"
-            className="flex items-center gap-1 py-2 text-xs data-[state=active]:bg-white data-[state=active]:shadow"
+            className="flex items-center gap-2 py-2 text-xs font-medium data-[state=active]:bg-white data-[state=active]:shadow data-[state=active]:text-indigo-600"
           >
             <MapPin className="w-4 h-4" />
             CEPs manuais
@@ -69,8 +69,8 @@ export function ImportMethodStep({
         </TabsList>
 
         <TabsContent value="file" className="mt-0">
-          <Card className="border border-dashed border-muted-foreground/30 bg-muted/10 shadow-sm rounded-md">
-            <CardContent className="p-4">
+          <Card className="border border-dashed border-slate-300 bg-slate-50 shadow-sm rounded-xl">
+            <CardContent className="p-5">
               <motion.div
                 className={cn(
                   "text-center flex flex-col items-center gap-4 cursor-pointer",
@@ -81,7 +81,7 @@ export function ImportMethodStep({
                 whileTap={{ scale: 0.98 }}
               >
                 <motion.div
-                  className="p-3 rounded-full bg-teal-100"
+                  className="p-3 rounded-full bg-indigo-100"
                   animate={
                     isFileLoading
                       ? { rotate: 360 }
@@ -94,19 +94,19 @@ export function ImportMethodStep({
                   }
                 >
                   {isFileLoading ? (
-                    <Loader2 className="w-6 h-6 text-teal-600 animate-spin" />
+                    <Loader2 className="w-6 h-6 text-indigo-500 animate-spin" />
                   ) : (
-                    <FileUp className="w-6 h-6 text-teal-600" />
+                    <FileUp className="w-6 h-6 text-indigo-500" />
                   )}
                 </motion.div>
 
-                <p className="text-sm font-medium text-slate-700">
+                <p className="text-sm font-medium text-gray-700">
                   {isFileLoading
                     ? "Processando arquivo..."
                     : "Clique para selecionar um arquivo CSV"}
                 </p>
-                <p className="text-xs text-muted-foreground">
-                  O CSV deve conter uma coluna de CEPs
+                <p className="text-xs text-gray-500">
+                  O arquivo deve conter uma coluna de CEPs
                 </p>
 
                 <input
@@ -121,7 +121,7 @@ export function ImportMethodStep({
                   variant="outline"
                   size="sm"
                   className={cn(
-                    "flex items-center gap-2 text-teal-700 border-teal-300 hover:bg-teal-50 transition shadow-sm",
+                    "flex items-center gap-2 border-indigo-300 text-indigo-600 hover:bg-indigo-50 hover:scale-105 transition shadow-sm rounded-md",
                     isFileLoading && "bg-muted cursor-not-allowed"
                   )}
                   onClick={(e) => {
@@ -147,14 +147,14 @@ export function ImportMethodStep({
         </TabsContent>
 
         <TabsContent value="manual" className="mt-0">
-          <Card className="border border-muted-foreground/20 bg-muted/10 shadow-sm rounded-md">
-            <CardContent className="p-4">
-              <div className="space-y-3">
-                <label className="block text-xs font-medium mb-1 text-slate-600">
-                  CEPs (um por linha ou vírgula)
+          <Card className="border border-slate-300 bg-slate-50 shadow-sm rounded-xl">
+            <CardContent className="p-5">
+              <div className="space-y-4">
+                <label className="block text-xs font-semibold uppercase tracking-wide mb-1 text-gray-600">
+                  CEPs (um por linha ou separados por vírgula)
                 </label>
                 <textarea
-                  className="w-full min-h-[140px] p-3 border rounded-md bg-white focus:ring-2 focus:ring-teal-300 text-sm placeholder:text-muted-foreground"
+                  className="w-full min-h-[140px] p-3 border border-slate-300 rounded-xl bg-white focus:ring-2 focus:ring-indigo-300 text-sm placeholder:text-gray-400"
                   placeholder="01001-000&#10;02002-000&#10;03003-000"
                   value={manualCeps}
                   onChange={(e) => setManualCeps(e.target.value)}
@@ -164,7 +164,7 @@ export function ImportMethodStep({
                   onClick={processManualCeps}
                   disabled={!manualCeps.trim()}
                   size="sm"
-                  className="w-full bg-teal-500 hover:bg-teal-600 text-white flex items-center justify-center gap-2 shadow-sm hover:scale-105 transition rounded-md"
+                  className="w-full bg-gradient-to-r from-indigo-500 to-cyan-400 hover:from-indigo-600 hover:to-cyan-500 text-white flex items-center justify-center gap-2 shadow-md hover:scale-105 transition rounded-xl py-2"
                 >
                   Validar CEPs
                 </Button>

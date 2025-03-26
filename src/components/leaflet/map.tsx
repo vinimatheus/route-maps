@@ -10,8 +10,11 @@ import { LeafletMapProvider, useLeafletMap } from "./LeafletMapContext";
 
 export type ExtendedLeafletMapProps = LeafletMapProps & {
   onPinClick?: (address: ParsedAddress) => void;
-  showOrderNumbers: boolean; // obrigue a sempre receber um boolean
+  showOrderNumbers: boolean;
+  polylinePoints: { lat: number; lng: number }[]; // ✅ novo campo
 };
+
+
 
 
 export default function LeafletMap({
@@ -53,11 +56,9 @@ function DelayedMapChildren({
   const { mapReady } = useLeafletMap();
 
   if (!mapReady) {
-    console.warn("mapRef.current não pronto ainda, aguardando renderização.");
     return null;
   }
 
-  console.log("MapRef está pronto, renderizando RouteControl e Markers");
   return (
     <>
       <WaypointMarkers

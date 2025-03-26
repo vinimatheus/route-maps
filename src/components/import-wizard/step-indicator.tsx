@@ -17,51 +17,56 @@ export function StepIndicator({ currentStep }: StepIndicatorProps) {
   ];
 
   return (
-    <div className="w-full pt-2 pb-4">
-      <div className="relative h-1 bg-muted/40 rounded-full">
+    <div className="w-full pt-2 pb-6">
+      <div className="relative h-1 bg-slate-200 rounded-full overflow-hidden">
         <motion.div
-          className="absolute top-0 left-0 h-1 bg-teal-500 rounded-full"
+          className="absolute top-0 left-0 h-1 bg-gradient-to-r from-indigo-500 to-cyan-400 rounded-full"
           initial={{ width: `${(currentStep - 1) * 33}%` }}
           animate={{ width: `${(currentStep - 1) * 33}%` }}
-          transition={{ duration: 0.3, ease: "easeInOut" }}
+          transition={{ duration: 0.4, ease: "easeInOut" }}
         />
       </div>
 
-      <div className="flex items-center justify-between mt-4">
-        {steps.map((step) => (
-          <div key={step.number} className="flex flex-col items-center w-1/4">
-            <motion.div
-              className={cn(
-                "w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold transition-all",
-                currentStep === step.number
-                  ? "bg-teal-500 text-white shadow"
-                  : currentStep > step.number
-                  ? "bg-teal-100 text-teal-700"
-                  : "bg-muted/50 text-muted-foreground"
-              )}
-              animate={currentStep > step.number ? { scale: [1, 1.08, 1] } : {}}
-              transition={{ duration: 0.3 }}
-            >
-              {currentStep > step.number ? (
-                <CheckIcon className="w-3 h-3" />
-              ) : (
-                step.number
-              )}
-            </motion.div>
-            <span
-              className={cn(
-                "text-[10px] mt-1 text-center font-medium",
-                currentStep === step.number
-                  ? "text-teal-600"
-                  : currentStep > step.number
-                  ? "text-teal-500"
-                  : "text-muted-foreground"
-              )}
-            >
-              {step.label}
-            </span>
-          </div>
-        ))}
+      <div className="flex items-center justify-between mt-5">
+        {steps.map((step) => {
+          const isCompleted = currentStep > step.number;
+          const isActive = currentStep === step.number;
+
+          return (
+            <div key={step.number} className="flex flex-col items-center w-1/4">
+              <motion.div
+                className={cn(
+                  "w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold transition-all border-2",
+                  isActive
+                    ? "bg-gradient-to-r from-indigo-500 to-cyan-400 text-white shadow-md border-white animate-pulse"
+                    : isCompleted
+                    ? "bg-indigo-100 text-indigo-700 border-indigo-200"
+                    : "bg-slate-200 text-slate-400 border-slate-300"
+                )}
+                animate={isCompleted ? { scale: [1, 1.08, 1] } : {}}
+                transition={{ duration: 0.3 }}
+              >
+                {isCompleted ? (
+                  <CheckIcon className="w-4 h-4" />
+                ) : (
+                  step.number
+                )}
+              </motion.div>
+              <span
+                className={cn(
+                  "text-[10px] mt-2 text-center uppercase tracking-wider font-medium",
+                  isActive
+                    ? "text-indigo-600"
+                    : isCompleted
+                    ? "text-indigo-500"
+                    : "text-slate-400"
+                )}
+              >
+                {step.label}
+              </span>
+            </div>
+          );
+        })}
       </div>
     </div>
   );

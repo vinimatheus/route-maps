@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import type { DropResult } from "@hello-pangea/dnd";
 import dynamic from "next/dynamic";
 import {
@@ -11,9 +11,22 @@ import {
 import { fetchCepData } from "@/lib/geocode-service";
 import AddressPanel from "@/components/route-planner/address-panel";
 import RouteMap from "@/components/route-planner/route-map";
-import { cn } from "@/lib/utils";
 import type { ParsedAddress } from "@/types/import";
+
 import LoadingOverlay from "../leaflet/LoadingOverlay";
+import {
+  Sidebar,
+  SidebarContent,
+  SidebarHeader,
+  SidebarInset,
+  SidebarMenu,
+  SidebarMenuButton,
+  SidebarMenuItem,
+  SidebarProvider,
+} from "../ui/sidebar";
+import { SiteHeader } from "../site-header";
+import { SectionCards } from "../section-cards";
+import { FaRoad } from "react-icons/fa6";
 
 const LeafletMap = dynamic(
   async () => (await import("@/components/leaflet/map")).default,
@@ -31,6 +44,7 @@ export default function RoutePlannerClient() {
   const [waypoints, setWaypoints] = useState<
     (ParsedAddress & { lat: number; lng: number })[]
   >([]);
+  const [polylinePoints, ] = useState<{ lat: number; lng: number }[]>([]);
   const [routeKey, setRouteKey] = useState(0);
 
   const [isLoadingOrigin, setIsLoadingOrigin] = useState(false);
@@ -42,25 +56,34 @@ export default function RoutePlannerClient() {
 
   const handleAddOrigin = async () => {
     if (!originCep) return;
-
+  
     setOriginError(null);
     setIsLoadingOrigin(true);
-
+  
+    const normalizedCep = originCep.replace(/\D/g, ""); // Remove caracteres não numéricos
+  
     try {
-      const location = await fetchCepData(originCep);
+      const location = await fetchCepData(normalizedCep);
       if (location) {
+        // 🚨 Se já existir nos endereços, bloqueia a adição como origem
+        if (addresses.some((addr) => addr.cep === normalizedCep)) {
+          setOriginError("O ponto de origem não pode ser um endereço de entrega já cadastrado.");
+          setIsLoadingOrigin(false);
+          return;
+        }
+  
         setOrigin({
-          id: originCep,
+          id: normalizedCep,
+          cep: normalizedCep, // Mantém o CEP armazenado corretamente
           description: location.description,
           lat: location.lat,
           lng: location.lng,
           isGeocoded: true,
         });
-        setOriginCep("");
+  
+        setOriginCep(""); // Limpa o input
       } else {
-        setOriginError(
-          "Não foi possível encontrar o CEP. Verifique e tente novamente."
-        );
+        setOriginError("Não foi possível encontrar o CEP. Verifique e tente novamente.");
       }
     } catch (error) {
       console.error("Erro ao adicionar origem:", error);
@@ -69,23 +92,35 @@ export default function RoutePlannerClient() {
       setIsLoadingOrigin(false);
     }
   };
+  
 
   const handleAddAddress = async () => {
     if (!addressCep) return;
-
+  
     setAddressError(null);
-    if (addresses.some((addr) => addr.id === addressCep)) {
+  
+    const normalizedCep = addressCep.replace(/\D/g, ""); // Remove caracteres não numéricos do CEP
+  
+    // 🚨 1. Bloquear CEPs duplicados
+    if (addresses.some((addr) => addr.cep === normalizedCep)) {
       setAddressError("Este CEP já foi adicionado à lista.");
       return;
     }
-
+  
+    // 🚨 2. Bloquear se o endereço for igual ao de origem
+    if (origin && origin.cep === normalizedCep) {
+      setAddressError("O endereço de entrega não pode ser igual ao de origem.");
+      return;
+    }
+  
     setIsLoadingAddress(true);
-
+  
     try {
-      const location = await fetchCepData(addressCep);
+      const location = await fetchCepData(normalizedCep);
       if (location) {
         const newAddress: RouteAddress = {
-          id: `${addressCep}-${Date.now()}`,
+          id: `${normalizedCep}-${Date.now()}`,
+          cep: normalizedCep, // Armazena apenas o CEP numérico puro
           description: location.description,
           lat: location.lat,
           lng: location.lng,
@@ -93,13 +128,11 @@ export default function RoutePlannerClient() {
           deliveryOrder: addresses.length + 1,
           isChecked: false,
         };
-
+  
         setAddresses((prev) => [...prev, newAddress]);
-        setAddressCep("");
+        setAddressCep(""); // Limpa o campo de input
       } else {
-        setAddressError(
-          "Não foi possível encontrar o CEP. Verifique e tente novamente."
-        );
+        setAddressError("Não foi possível encontrar o CEP. Verifique e tente novamente.");
       }
     } catch (error) {
       console.error("Erro ao adicionar endereço:", error);
@@ -108,6 +141,7 @@ export default function RoutePlannerClient() {
       setIsLoadingAddress(false);
     }
   };
+  
 
   const handleRemoveAddress = (id: string) => {
     setAddresses((prev) => prev.filter((addr) => addr.id !== id));
@@ -133,7 +167,7 @@ export default function RoutePlannerClient() {
       setWaypoints(
         points.map((p) => ({
           id: p.id,
-          cep: p.cep,
+          cep: p.cep ?? "",
           isGeocoded: p.isGeocoded,
           lat: p.lat,
           lng: p.lng,
@@ -155,24 +189,46 @@ export default function RoutePlannerClient() {
     }
   };
 
+  useEffect(() => {
+    if (origin && addresses.length > 0) {
+      calculateRoute();
+    }
+  }, [addresses]); 
+
   const togglePanel = () => {
     setIsPanelExpanded(!isPanelExpanded);
   };
 
   const onOptimizeRoute = (optimizedAddresses: RouteAddress[]) => {
     setAddresses(optimizedAddresses);
-    calculateRoute();
   };
 
   return (
-    <div className="flex min-h-screen h-screen bg-gradient-to-br from-background via-background/80 to-primary/5">
-      <div className="flex flex-col lg:flex-row gap-6 flex-1 w-full p-4 md:p-6 lg:p-8">
-        <div
-          className={cn(
-            "transition-all duration-300 ease-in-out",
-            isPanelExpanded ? "lg:w-1/3" : "lg:w-[120px]"
-          )}
-        >
+    <SidebarProvider
+      style={
+        {
+          "--sidebar-width": "calc(var(--spacing) * 120)",
+          "--header-height": "calc(var(--spacing) * 12)",
+        } as React.CSSProperties
+      }
+    >
+      <Sidebar collapsible="offcanvas" variant="inset">
+        <SidebarHeader>
+          <SidebarMenu>
+            <SidebarMenuItem>
+              <SidebarMenuButton
+                asChild
+                className="data-[slot=sidebar-menu-button]:!p-1.5"
+              >
+                <a href="#">
+                  <FaRoad className="!size-5" />
+                  <span className="text-base font-semibold">Route Planner</span>
+                </a>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+          </SidebarMenu>
+        </SidebarHeader>
+        <SidebarContent className="p-4">
           <AddressPanel
             originCep={originCep}
             setOriginCep={setOriginCep}
@@ -195,21 +251,28 @@ export default function RoutePlannerClient() {
             setAddresses={setAddresses}
             onOptimizeRoute={onOptimizeRoute}
           />
+        </SidebarContent>
+      </Sidebar>
+      <SidebarInset className="p-4">
+        <SiteHeader />
+        <div className="flex flex-1 flex-col">
+          <div className="@container/main flex flex-1 flex-col gap-2">
+            <div className="flex flex-col gap-4 py-4 md:gap-6 md:py-6">
+              <SectionCards 
+                origin={origin}
+                addresses={addresses}
+                isVisible={!!origin && addresses.length > 0}
+              />
+            </div>
+          </div>
         </div>
-
-        <div
-          className={cn(
-            "flex-1 h-full transition-all duration-300",
-            isPanelExpanded ? "lg:w-2/3" : "lg:w-[calc(100%-120px)]"
-          )}
-        >
-          <RouteMap
-            LeafletMap={LeafletMap}
-            waypoints={waypoints}
-            routeKey={routeKey}
-          />
-        </div>
-      </div>
-    </div>
+        <RouteMap
+          LeafletMap={LeafletMap}
+          waypoints={waypoints}
+          routeKey={routeKey}
+          polylinePoints={polylinePoints}
+        />
+      </SidebarInset>
+    </SidebarProvider>
   );
 }

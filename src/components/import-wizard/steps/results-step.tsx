@@ -22,6 +22,7 @@ interface ResultItem {
   description?: string;
   status: "success" | "error";
   data?: RouteAddress;
+  errorMessage?: string;
 }
 
 interface ResultsStepProps {
@@ -38,7 +39,8 @@ export function ResultsStep({
   handleConfirm,
 }: ResultsStepProps) {
   const [filter, setFilter] = useState<"all" | "valid" | "invalid">("all");
-  const getErrorCount = () => results.filter((r) => r.status === "error").length;
+  const getErrorCount = () =>
+    results.filter((r) => r.status === "error").length;
 
   const filteredResults = results.filter((result) => {
     if (filter === "all") return true;
@@ -51,20 +53,20 @@ export function ResultsStep({
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-xl font-bold text-slate-700">Resultados</h2>
-          <p className="text-sm text-muted-foreground mt-1">
+          <h2 className="text-xl font-semibold text-gray-800">Resultados</h2>
+          <p className="text-sm text-gray-500 mt-1">
             {getSuccessCount()} endereços válidos
           </p>
         </div>
 
         <div className="flex items-center gap-2">
-          <Badge className="bg-teal-100 text-teal-700 rounded-md px-2 py-1 text-xs">
+          <Badge className="bg-indigo-100 text-indigo-700 border border-indigo-200 rounded-md px-2 py-1 text-xs font-medium">
             <CheckCircle className="w-4 h-4 mr-1" />
             {getSuccessCount()}
           </Badge>
 
           {getErrorCount() > 0 && (
-            <Badge className="bg-rose-100 text-rose-700 rounded-md px-2 py-1 text-xs">
+            <Badge className="bg-rose-100 text-rose-700 border border-rose-200 rounded-md px-2 py-1 text-xs font-medium">
               <AlertCircle className="w-4 h-4 mr-1" />
               {getErrorCount()}
             </Badge>
@@ -73,26 +75,26 @@ export function ResultsStep({
       </div>
 
       {results.length === 0 ? (
-        <div className="text-center py-10 bg-muted/30 rounded-md border border-border/30">
-          <FileWarning className="w-12 h-12 text-muted-foreground mx-auto mb-4 opacity-50" />
-          <p className="text-sm text-muted-foreground">Nenhum resultado</p>
+        <div className="text-center py-10 bg-slate-50 rounded-xl border border-slate-200">
+          <FileWarning className="w-12 h-12 text-gray-400 mx-auto mb-4 opacity-70" />
+          <p className="text-sm text-gray-500">Nenhum resultado encontrado</p>
         </div>
       ) : (
         <>
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-1 text-xs text-slate-500">
+            <div className="flex items-center gap-1 text-xs text-gray-500 uppercase tracking-wide">
               <Filter className="w-3 h-3" />
               Filtros:
             </div>
-            <div className="flex bg-muted/30 p-0.5 rounded-md gap-1">
+            <div className="flex bg-slate-100 p-0.5 rounded-lg gap-1">
               {["all", "valid", "invalid"].map((f) => (
                 <button
                   key={f}
                   className={cn(
-                    "px-2 py-1 text-xs rounded-md transition",
+                    "px-3 py-1 text-xs rounded-md transition font-medium",
                     filter === f
-                      ? "bg-background shadow text-slate-700"
-                      : "text-muted-foreground hover:text-foreground"
+                      ? "bg-white shadow text-indigo-700"
+                      : "text-gray-500 hover:text-gray-700"
                   )}
                   onClick={() => setFilter(f as typeof filter)}
                 >
@@ -104,16 +106,18 @@ export function ResultsStep({
             </div>
           </div>
 
-          <div className="border rounded-md overflow-hidden bg-white shadow-sm">
-            <div className="max-h-[250px] overflow-auto custom-scrollbar">
-              <table className="min-w-full divide-y divide-border/30 text-sm">
-                <thead className="sticky top-0 bg-muted/40">
+          <div className="border rounded-xl overflow-hidden bg-white shadow-md">
+            <div className="max-h-[260px] overflow-auto custom-scrollbar">
+              <table className="min-w-full divide-y divide-slate-200 text-sm">
+                <thead className="sticky top-0 bg-slate-50 border-b border-slate-200">
                   <tr>
-                    <th className="px-3 py-2 text-left font-medium w-16">
+                    <th className="px-4 py-2 text-left font-semibold w-16">
                       Status
                     </th>
-                    <th className="px-3 py-2 text-left font-medium">CEP</th>
-                    <th className="px-3 py-2 text-left font-medium">Descrição</th>
+                    <th className="px-4 py-2 text-left font-semibold">CEP</th>
+                    <th className="px-4 py-2 text-left font-semibold">
+                      Descrição
+                    </th>
                   </tr>
                 </thead>
                 <tbody>
@@ -122,26 +126,26 @@ export function ResultsStep({
                       key={result.cep + i}
                       initial={{ opacity: 0, y: 5 }}
                       animate={{ opacity: 1, y: 0 }}
-                      transition={{ duration: 0.2, delay: i * 0.01 }}
+                      transition={{ duration: 0.2, delay: i * 0.015 }}
                       className={cn(
-                        "hover:bg-muted/10 transition",
+                        "hover:bg-slate-100 transition",
                         result.status === "error" && "bg-rose-50"
                       )}
                     >
-                      <td className="px-3 py-2">
+                      <td className="px-4 py-2">
                         {result.status === "success" ? (
-                          <CheckCircle className="w-4 h-4 text-teal-600" />
+                          <CheckCircle className="w-4 h-4 text-indigo-600" />
                         ) : (
                           <X className="w-4 h-4 text-rose-500" />
                         )}
                       </td>
-                      <td className="px-3 py-2 font-semibold text-slate-600">
+                      <td className="px-4 py-2 font-medium text-gray-700">
                         {result.cep}
                       </td>
-                      <td className="px-3 py-2 text-slate-500 truncate max-w-[180px]">
+                      <td className="px-4 py-2 text-gray-500 truncate max-w-[200px]">
                         {result.status === "success"
                           ? result.data?.description || "-"
-                          : "Inválido ou não encontrado"}
+                          : result.errorMessage || "Inválido ou não encontrado"}
                       </td>
                     </motion.tr>
                   ))}
@@ -157,7 +161,7 @@ export function ResultsStep({
           variant="outline"
           size="sm"
           onClick={resetWizard}
-          className="flex items-center gap-1"
+          className="flex items-center gap-1 text-gray-600 hover:text-gray-800"
         >
           <ArrowLeft className="w-4 h-4" />
           Reiniciar
@@ -169,7 +173,7 @@ export function ResultsStep({
               variant="outline"
               size="sm"
               disabled
-              className="flex items-center gap-1 text-muted-foreground cursor-not-allowed"
+              className="flex items-center gap-1 text-gray-400 cursor-not-allowed"
             >
               <Download className="w-4 h-4" />
               Exportar CSV
@@ -179,10 +183,10 @@ export function ResultsStep({
             size="sm"
             onClick={handleConfirm}
             disabled={getSuccessCount() === 0}
-            className="bg-teal-500 hover:bg-teal-600 text-white flex items-center gap-1 shadow-sm hover:scale-105 transition rounded-md"
+            className="bg-gradient-to-r from-indigo-500 to-cyan-400 hover:from-indigo-600 hover:to-cyan-500 text-white flex items-center gap-2 shadow-md hover:scale-105 hover:shadow-xl transition rounded-xl px-4 py-2"
           >
             <ListChecks className="w-4 h-4" />
-            Adicionar
+            Adicionar à rota
           </Button>
         </div>
       </div>
