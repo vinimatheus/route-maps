@@ -17,16 +17,11 @@ import LoadingOverlay from "../leaflet/LoadingOverlay";
 import {
   Sidebar,
   SidebarContent,
-  SidebarHeader,
-  SidebarInset,
-  SidebarMenu,
-  SidebarMenuButton,
-  SidebarMenuItem,
-  SidebarProvider,
+  SidebarFooter, SidebarInset, SidebarProvider
 } from "../ui/sidebar";
 import { SiteHeader } from "../site-header";
 import { SectionCards } from "../section-cards";
-import { FaRoad } from "react-icons/fa6";
+import { LogoComponent } from "../ui/sidebar-logo";
 
 const LeafletMap = dynamic(
   async () => (await import("@/components/leaflet/map")).default,
@@ -44,7 +39,7 @@ export default function RoutePlannerClient() {
   const [waypoints, setWaypoints] = useState<
     (ParsedAddress & { lat: number; lng: number })[]
   >([]);
-  const [polylinePoints, ] = useState<{ lat: number; lng: number }[]>([]);
+  const [polylinePoints] = useState<{ lat: number; lng: number }[]>([]);
   const [routeKey, setRouteKey] = useState(0);
 
   const [isLoadingOrigin, setIsLoadingOrigin] = useState(false);
@@ -56,22 +51,24 @@ export default function RoutePlannerClient() {
 
   const handleAddOrigin = async () => {
     if (!originCep) return;
-  
+
     setOriginError(null);
     setIsLoadingOrigin(true);
-  
+
     const normalizedCep = originCep.replace(/\D/g, ""); // Remove caracteres não numéricos
-  
+
     try {
       const location = await fetchCepData(normalizedCep);
       if (location) {
         // 🚨 Se já existir nos endereços, bloqueia a adição como origem
         if (addresses.some((addr) => addr.cep === normalizedCep)) {
-          setOriginError("O ponto de origem não pode ser um endereço de entrega já cadastrado.");
+          setOriginError(
+            "O ponto de origem não pode ser um endereço de entrega já cadastrado."
+          );
           setIsLoadingOrigin(false);
           return;
         }
-  
+
         setOrigin({
           id: normalizedCep,
           cep: normalizedCep, // Mantém o CEP armazenado corretamente
@@ -80,10 +77,12 @@ export default function RoutePlannerClient() {
           lng: location.lng,
           isGeocoded: true,
         });
-  
+
         setOriginCep(""); // Limpa o input
       } else {
-        setOriginError("Não foi possível encontrar o CEP. Verifique e tente novamente.");
+        setOriginError(
+          "Não foi possível encontrar o CEP. Verifique e tente novamente."
+        );
       }
     } catch (error) {
       console.error("Erro ao adicionar origem:", error);
@@ -92,29 +91,28 @@ export default function RoutePlannerClient() {
       setIsLoadingOrigin(false);
     }
   };
-  
 
   const handleAddAddress = async () => {
     if (!addressCep) return;
-  
+
     setAddressError(null);
-  
+
     const normalizedCep = addressCep.replace(/\D/g, ""); // Remove caracteres não numéricos do CEP
-  
+
     // 🚨 1. Bloquear CEPs duplicados
     if (addresses.some((addr) => addr.cep === normalizedCep)) {
       setAddressError("Este CEP já foi adicionado à lista.");
       return;
     }
-  
+
     // 🚨 2. Bloquear se o endereço for igual ao de origem
     if (origin && origin.cep === normalizedCep) {
       setAddressError("O endereço de entrega não pode ser igual ao de origem.");
       return;
     }
-  
+
     setIsLoadingAddress(true);
-  
+
     try {
       const location = await fetchCepData(normalizedCep);
       if (location) {
@@ -128,11 +126,13 @@ export default function RoutePlannerClient() {
           deliveryOrder: addresses.length + 1,
           isChecked: false,
         };
-  
+
         setAddresses((prev) => [...prev, newAddress]);
         setAddressCep(""); // Limpa o campo de input
       } else {
-        setAddressError("Não foi possível encontrar o CEP. Verifique e tente novamente.");
+        setAddressError(
+          "Não foi possível encontrar o CEP. Verifique e tente novamente."
+        );
       }
     } catch (error) {
       console.error("Erro ao adicionar endereço:", error);
@@ -141,7 +141,6 @@ export default function RoutePlannerClient() {
       setIsLoadingAddress(false);
     }
   };
-  
 
   const handleRemoveAddress = (id: string) => {
     setAddresses((prev) => prev.filter((addr) => addr.id !== id));
@@ -157,43 +156,53 @@ export default function RoutePlannerClient() {
     setAddresses(updatedItems);
   };
 
-  const calculateRoute = useCallback(async (forceReturn = false) => {
-    if (!origin || addresses.length < 1 || isCalculatingRoute) return;
+  const calculateRoute = useCallback(
+    async (forceReturn = false) => {
+      if (!origin || addresses.length < 1 || isCalculatingRoute) return;
 
-    setIsCalculatingRoute(true);
+      setIsCalculatingRoute(true);
 
-    try {
-      const points = createWaypoints(origin, addresses, forceReturn);
-      setWaypoints(
-        points.map((p) => ({
-          id: p.id,
-          cep: p.cep ?? "",
-          isGeocoded: p.isGeocoded,
-          lat: p.lat,
-          lng: p.lng,
-          formattedAddress: p.formattedAddress,
-          displayInfo: { origem: p.description },
-        }))
-      );
+      try {
+        const points = createWaypoints(origin, addresses, forceReturn);
+        setWaypoints(
+          points.map((p) => ({
+            id: p.id,
+            cep: p.cep ?? "",
+            isGeocoded: p.isGeocoded,
+            lat: p.lat,
+            lng: p.lng,
+            formattedAddress: p.formattedAddress,
+            displayInfo: { origem: p.description },
+          }))
+        );
 
-      setRouteKey((prev) => prev + 1);
-
-      setTimeout(() => {
-        console.log("Forçando novo update no routeKey após delay.");
         setRouteKey((prev) => prev + 1);
-      }, 500);
-    } catch (error) {
-      console.error("Erro ao calcular rota:", error);
-    } finally {
-      setIsCalculatingRoute(false);
-    }
-  }, [origin, addresses, isCalculatingRoute, setWaypoints, setRouteKey, setIsCalculatingRoute]);
+
+        setTimeout(() => {
+          console.log("Forçando novo update no routeKey após delay.");
+          setRouteKey((prev) => prev + 1);
+        }, 500);
+      } catch (error) {
+        console.error("Erro ao calcular rota:", error);
+      } finally {
+        setIsCalculatingRoute(false);
+      }
+    },
+    [
+      origin,
+      addresses,
+      isCalculatingRoute,
+      setWaypoints,
+      setRouteKey,
+      setIsCalculatingRoute,
+    ]
+  );
 
   useEffect(() => {
     if (origin && addresses.length > 0) {
       calculateRoute();
     }
-  }, [addresses, calculateRoute, origin]); 
+  }, [addresses, calculateRoute, origin]);
 
   const togglePanel = () => {
     setIsPanelExpanded(!isPanelExpanded);
@@ -213,21 +222,9 @@ export default function RoutePlannerClient() {
       }
     >
       <Sidebar collapsible="offcanvas" variant="inset">
-        <SidebarHeader>
-          <SidebarMenu>
-            <SidebarMenuItem>
-              <SidebarMenuButton
-                asChild
-                className="data-[slot=sidebar-menu-button]:!p-1.5"
-              >
-                <a href="#">
-                  <FaRoad className="!size-5" />
-                  <span className="text-base font-semibold">Route Planner</span>
-                </a>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-          </SidebarMenu>
-        </SidebarHeader>
+        <SidebarFooter className="">
+          <LogoComponent/>
+        </SidebarFooter>
         <SidebarContent className="p-4">
           <AddressPanel
             originCep={originCep}
@@ -258,7 +255,7 @@ export default function RoutePlannerClient() {
         <div className="flex flex-1 flex-col">
           <div className="@container/main flex flex-1 flex-col gap-2">
             <div className="flex flex-col gap-4 py-4 md:gap-6 md:py-6">
-              <SectionCards 
+              <SectionCards
                 origin={origin}
                 addresses={addresses}
                 isVisible={!!origin && addresses.length > 0}
