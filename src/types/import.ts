@@ -13,7 +13,7 @@ export interface ParsedAddress {
 
 export interface LeafletMapProps {
   waypoints: (ParsedAddress & { lat: number; lng: number })[];
-  routeKey: number;  // obrigatório
+  routeKey: number;
   showOrderNumbers?: boolean;
-  onPinClick?: (address: ParsedAddress) => void;  // agora incluído!
+  onPinClick?: (address: ParsedAddress) => void;
 }

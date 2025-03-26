@@ -1,13 +1,11 @@
 import { type NextRequest, NextResponse } from "next/server"
 import type { GoogleGeocodeResponse } from "@/types/google-maps"
 
-const CACHE_TTL = 1000 * 60 * 60 // 1 hora
+const CACHE_TTL = 1000 * 60 * 60
 const geocodeCache = new Map<string, { data: GoogleGeocodeResponse; timestamp: number }>()
 const requestCounts = new Map<string, { count: number; timestamp: number; resetTime?: number }>()
 
-// Função auxiliar para validar o endereço
 function isValidAddress(address: string): boolean {
-  // Remove caracteres especiais e verifica comprimento mínimo
   const sanitized = address.replace(/[^\w\s-]/g, '').trim()
   return sanitized.length >= 3 && sanitized.length <= 200
 }
@@ -17,7 +15,6 @@ export async function GET(request: NextRequest) {
     const clientIp = request.headers.get("x-forwarded-for") || "unknown"
     const userAgent = request.headers.get("user-agent") || "unknown"
 
-    // Validação básica de User-Agent
     if (!userAgent || userAgent === "unknown") {
       return NextResponse.json({ error: "Invalid request" }, { 
         status: 400,
@@ -70,7 +67,6 @@ export async function GET(request: NextRequest) {
     const cachedResult = geocodeCache.get(cacheKey)
     
     if (cachedResult) {
-      // Verifica se o cache ainda é válido
       if (Date.now() - cachedResult.timestamp < CACHE_TTL) {
         return NextResponse.json(cachedResult.data, {
           headers: {
@@ -144,7 +140,6 @@ export async function GET(request: NextRequest) {
 
     geocodeCache.set(cacheKey, { data, timestamp: Date.now() })
 
-    // Limpa cache antigo se necessário
     if (geocodeCache.size > 100) {
       const now = Date.now()
       for (const [key, value] of geocodeCache.entries()) {

@@ -30,7 +30,7 @@ export function RouteOptimizerButton({
     setIsOptimizing(true);
 
     try {
-      await delay(500); // Simula carregamento leve
+      await delay(500); 
       const optimizedAddresses = optimizeRouteNearestNeighbor(
         origin,
         addresses

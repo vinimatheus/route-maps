@@ -6,7 +6,7 @@ import { useSidebar } from "@/components/ui/sidebar";
 
 export default function MapContainer() {
   const { mapRef, setMapReady } = useLeafletMap();
-  const { state } = useSidebar(); // ✅ ouvir o sidebar expand/collapse
+  const { state } = useSidebar(); 
 
   useEffect(() => {
     if (mapRef.current || !window.L) return;
@@ -28,12 +28,11 @@ export default function MapContainer() {
     setTimeout(() => map.invalidateSize(), 500);
   }, [mapRef, setMapReady]);
 
-  // ✅ Sempre que o sidebar for expandido ou minimizado
   useEffect(() => {
     if (mapRef.current) {
       setTimeout(() => {
         mapRef.current!.invalidateSize();
-      }, 350); // espera animação do sidebar
+      }, 350); 
     }
   }, [state, mapRef]);
 

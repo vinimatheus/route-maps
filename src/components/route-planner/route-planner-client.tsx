@@ -55,12 +55,11 @@ export default function RoutePlannerClient() {
     setOriginError(null);
     setIsLoadingOrigin(true);
 
-    const normalizedCep = originCep.replace(/\D/g, ""); // Remove caracteres não numéricos
+    const normalizedCep = originCep.replace(/\D/g, ""); 
 
     try {
       const location = await fetchCepData(normalizedCep);
       if (location) {
-        // 🚨 Se já existir nos endereços, bloqueia a adição como origem
         if (addresses.some((addr) => addr.cep === normalizedCep)) {
           setOriginError(
             "O ponto de origem não pode ser um endereço de entrega já cadastrado."
@@ -71,14 +70,14 @@ export default function RoutePlannerClient() {
 
         setOrigin({
           id: normalizedCep,
-          cep: normalizedCep, // Mantém o CEP armazenado corretamente
+          cep: normalizedCep,
           description: location.description,
           lat: location.lat,
           lng: location.lng,
           isGeocoded: true,
         });
 
-        setOriginCep(""); // Limpa o input
+        setOriginCep("");
       } else {
         setOriginError(
           "Não foi possível encontrar o CEP. Verifique e tente novamente."
@@ -97,15 +96,13 @@ export default function RoutePlannerClient() {
 
     setAddressError(null);
 
-    const normalizedCep = addressCep.replace(/\D/g, ""); // Remove caracteres não numéricos do CEP
+    const normalizedCep = addressCep.replace(/\D/g, "");
 
-    // 🚨 1. Bloquear CEPs duplicados
     if (addresses.some((addr) => addr.cep === normalizedCep)) {
       setAddressError("Este CEP já foi adicionado à lista.");
       return;
     }
 
-    // 🚨 2. Bloquear se o endereço for igual ao de origem
     if (origin && origin.cep === normalizedCep) {
       setAddressError("O endereço de entrega não pode ser igual ao de origem.");
       return;
@@ -118,7 +115,7 @@ export default function RoutePlannerClient() {
       if (location) {
         const newAddress: RouteAddress = {
           id: `${normalizedCep}-${Date.now()}`,
-          cep: normalizedCep, // Armazena apenas o CEP numérico puro
+          cep: normalizedCep,
           description: location.description,
           lat: location.lat,
           lng: location.lng,
@@ -128,7 +125,7 @@ export default function RoutePlannerClient() {
         };
 
         setAddresses((prev) => [...prev, newAddress]);
-        setAddressCep(""); // Limpa o campo de input
+        setAddressCep("");
       } else {
         setAddressError(
           "Não foi possível encontrar o CEP. Verifique e tente novamente."

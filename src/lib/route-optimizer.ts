@@ -27,7 +27,7 @@ export function optimizeRouteNearestNeighbor(origin: RouteAddress, addresses: Ro
 
     for (let i = 0; i < unvisitedAddresses.length; i++) {
       const address = unvisitedAddresses[i]
-      // Calcular distância considerando barreiras geográficas
+
       const distance = calculateGeographicallyAwareDistance(currentPoint.lat, currentPoint.lng, address.lat!, address.lng!)
       if (distance < shortestDistance) {
         shortestDistance = distance
@@ -46,43 +46,40 @@ export function optimizeRouteNearestNeighbor(origin: RouteAddress, addresses: Ro
   }))
 }
 
-// Função que considera barreiras geográficas para calcular distâncias mais realistas
+
 export function calculateGeographicallyAwareDistance(lat1: number, lng1: number, lat2: number, lng2: number): number {
-  // Calcular a distância básica usando Haversine
+
   const baseDistance = calculateDistance(lat1, lng1, lat2, lng2)
   
-  // Verificar se os pontos estão em regiões que exigem considerações especiais
-  // Exemplo: Macapá e Manaus são separados pelo Rio Amazonas e floresta densa
+
   const isMacapaToManaus = isBetweenRegions(lat1, lng1, lat2, lng2, 
-    { lat: 0.0356, lng: -51.0705 }, // Aproximadamente Macapá
-    { lat: -3.1190, lng: -60.0217 }  // Aproximadamente Manaus
+    { lat: 0.0356, lng: -51.0705 },
+    { lat: -3.1190, lng: -60.0217 }
   )
   
   if (isMacapaToManaus) {
-    // Aplicar um fator de correção para considerar a rota real por estradas/rios
-    return baseDistance * 1.8 // Aumenta a "distância efetiva" em 80%
+    return baseDistance * 1.8
   }
   
-  // Verificar outras regiões problemáticas e aplicar fatores de correção
-  // Adicionar mais verificações conforme necessário para outras regiões
+
   
   return baseDistance
 }
 
-// Função auxiliar para verificar se dois pontos estão entre duas regiões específicas
+
 function isBetweenRegions(
   lat1: number, lng1: number, 
   lat2: number, lng2: number,
   regionA: {lat: number, lng: number},
   regionB: {lat: number, lng: number}
 ): boolean {
-  // Verificar se os pontos estão próximos das regiões especificadas
+
   const isPoint1NearRegionA = calculateDistance(lat1, lng1, regionA.lat, regionA.lng) < 100
   const isPoint2NearRegionA = calculateDistance(lat2, lng2, regionA.lat, regionA.lng) < 100
   const isPoint1NearRegionB = calculateDistance(lat1, lng1, regionB.lat, regionB.lng) < 100
   const isPoint2NearRegionB = calculateDistance(lat2, lng2, regionB.lat, regionB.lng) < 100
   
-  // Se um ponto está próximo de A e outro próximo de B, então estão entre as regiões
+
   return (isPoint1NearRegionA && isPoint2NearRegionB) || (isPoint1NearRegionB && isPoint2NearRegionA)
 }
 
@@ -96,14 +93,14 @@ export function calculateTotalRouteDistance(
   let previousPoint = { lat: origin.lat!, lng: origin.lng! }
 
   for (const address of addresses) {
-    // Usar a função que considera barreiras geográficas
+
     const distance = calculateGeographicallyAwareDistance(previousPoint.lat, previousPoint.lng, address.lat!, address.lng!)
     totalDistance += distance
     previousPoint = { lat: address.lat!, lng: address.lng! }
   }
 
   if (returnToOrigin) {
-    // Usar a função que considera barreiras geográficas para o retorno
+
     totalDistance += calculateGeographicallyAwareDistance(previousPoint.lat, previousPoint.lng, origin.lat!, origin.lng!)
   }
 

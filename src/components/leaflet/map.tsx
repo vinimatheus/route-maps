@@ -11,7 +11,7 @@ import { LeafletMapProvider, useLeafletMap } from "./LeafletMapContext";
 export type ExtendedLeafletMapProps = LeafletMapProps & {
   onPinClick?: (address: ParsedAddress) => void;
   showOrderNumbers: boolean;
-  polylinePoints: { lat: number; lng: number }[]; // ✅ novo campo
+  polylinePoints: { lat: number; lng: number }[]; 
 };
 
 

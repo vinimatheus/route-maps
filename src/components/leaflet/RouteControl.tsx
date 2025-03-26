@@ -27,7 +27,6 @@ export default function RouteControl({ waypoints, showRoute }: RouteControlProps
 
     console.log("Criando rota no mapa...");
 
-    // Limpa controles e polylines anteriores com verificações de segurança
     if (routingControlRef.current && map) {
       try {
         map.removeControl(routingControlRef.current);
@@ -78,13 +77,11 @@ export default function RouteControl({ waypoints, showRoute }: RouteControlProps
         console.error("Erro na rota:", event.error);
         console.info("Criando polyline fallback para visualização da rota.");
 
-        // Remove polyline anterior, se houver
         if (polylineRef.current) {
           polylineRef.current.remove();
           polylineRef.current = null;
         }
 
-        // Adiciona fallback visual da rota
         const fallbackPolyline = window.L.polyline(routeWaypoints, {
           color: "#6366F1",
           weight: 5,
@@ -92,7 +89,6 @@ export default function RouteControl({ waypoints, showRoute }: RouteControlProps
           dashArray: "10, 10",
         }).addTo(map);
 
-        // Garante que fique por cima dos layers
         fallbackPolyline.bringToFront();
 
         polylineRef.current = fallbackPolyline;

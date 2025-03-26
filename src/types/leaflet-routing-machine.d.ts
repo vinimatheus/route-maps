@@ -1,8 +1,3 @@
-/**
- * Type definitions for Leaflet Routing Machine
- * These definitions extend the Leaflet namespace to include Routing Machine functionality
- */
-
 import L from 'leaflet';
 
 declare module 'leaflet' {
@@ -86,6 +81,5 @@ declare module 'leaflet' {
   }
 }
 
-// Declare the module to make TypeScript recognize the import
 declare module 'leaflet-routing-machine' {}
 declare module 'leaflet-routing-machine/dist/leaflet-routing-machine.css' {}

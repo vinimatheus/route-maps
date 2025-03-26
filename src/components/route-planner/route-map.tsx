@@ -5,7 +5,7 @@ interface RouteMapProps {
   LeafletMap: ComponentType<ExtendedLeafletMapProps>;
   waypoints: ExtendedLeafletMapProps["waypoints"];
   routeKey: number;
-  polylinePoints: { lat: number; lng: number }[]; // ✅ adicione essa linha
+  polylinePoints: { lat: number; lng: number }[]; 
 }
 
 export default function RouteMap({

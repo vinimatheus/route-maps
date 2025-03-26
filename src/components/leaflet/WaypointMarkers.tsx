@@ -21,7 +21,6 @@ export default function WaypointMarkers({
     const map = mapRef.current;
     if (!map || !window.L) return;
 
-    // Remove marcadores antigos
     markersRef.current.forEach((marker) => marker.remove());
     markersRef.current = [];
 

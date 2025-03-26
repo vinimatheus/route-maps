@@ -1,7 +1,3 @@
-/**
- * Type definitions for Google Maps Geocoding API responses
- */
-
 export interface GoogleGeocodeResponse {
   status: string;
   results: GoogleGeocodeResult[];

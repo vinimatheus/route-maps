@@ -24,5 +24,5 @@ interface ResultItem {
   description?: string;
   status: "success" | "error";
   data?: RouteAddress;
-  errorMessage?: string; // ✅ Adiciona esta linha!
+  errorMessage?: string; 
 }

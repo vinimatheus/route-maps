@@ -29,7 +29,6 @@ export function useImportWizard(existingAddresses: RouteAddress[], originCep?: s
   const [importMethod, setImportMethod] = useState<"file" | "manual">("file");
   const [manualCeps, setManualCeps] = useState("");
 
-  // ✅ Corrigido: ref padrão
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {

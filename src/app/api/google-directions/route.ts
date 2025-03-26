@@ -1,4 +1,3 @@
-// app/api/google-directions/route.ts
 import { NextRequest, NextResponse } from "next/server";
 
 export async function POST(req: NextRequest) {

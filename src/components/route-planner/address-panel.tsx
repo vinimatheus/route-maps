@@ -149,7 +149,6 @@ export default function AddressPanel({
                 : "Importar planilha"}
             </Button>
 
-            {/* ✅ Nova visualização inline */}
             <ManageAddressesPanel
               addresses={addresses}
               onRemove={handleRemoveAddress}
