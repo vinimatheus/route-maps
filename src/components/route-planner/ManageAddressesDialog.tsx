@@ -1,21 +1,20 @@
-"use client";
+"use client"
 
 import {
   DragDropContext,
   Droppable,
   Draggable,
   type DropResult,
-} from "@hello-pangea/dnd";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Trash2 } from "lucide-react";
-import type { RouteAddress } from "@/lib/route-manager";
-import { cn } from "@/lib/utils";
+} from "@hello-pangea/dnd"
+import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
+import { Trash2 } from "lucide-react"
+import type { RouteAddress } from "@/lib/route-manager"
 
 interface ManageAddressesPanelProps {
-  addresses: RouteAddress[];
-  onDragEnd: (result: DropResult) => void;
-  onRemove: (id: string) => void;
+  addresses: RouteAddress[]
+  onDragEnd: (result: DropResult) => void
+  onRemove: (id: string) => void
 }
 
 export function ManageAddressesPanel({
@@ -23,13 +22,11 @@ export function ManageAddressesPanel({
   onDragEnd,
   onRemove,
 }: ManageAddressesPanelProps) {
-  if (addresses.length === 0) return null;
+  if (addresses.length === 0) return null
 
   return (
-    <div className="mt-4 border-t border-slate-200 pt-4">
-      <h3 className="text-sm font-semibold text-gray-700 mb-2">
-        Ordem de entrega
-      </h3>
+    <div>
+      <h3 className="text-sm font-medium mb-2">Ordem de entrega</h3>
       <DragDropContext onDragEnd={onDragEnd}>
         <Droppable droppableId="address-list-panel">
           {(provided) => (
@@ -44,22 +41,17 @@ export function ManageAddressesPanel({
                   draggableId={address.id}
                   index={index}
                 >
-                  {(provided, snapshot) => (
+                  {(provided) => (
                     <li
                       ref={provided.innerRef}
                       {...provided.draggableProps}
                       {...provided.dragHandleProps}
-                      className={cn(
-                        "flex items-center justify-between border border-slate-200 p-2 rounded-lg bg-slate-50 shadow-sm transition-all",
-                        snapshot.isDragging && "ring-2 ring-indigo-300"
-                      )}
+                      className="flex items-center justify-between border rounded-md p-2"
                       style={provided.draggableProps.style}
                     >
                       <div className="flex items-center gap-3">
-                        <Badge className="bg-indigo-100 text-indigo-700">
-                          {index + 1}
-                        </Badge>
-                        <div className="text-xs text-gray-600 max-w-[240px] truncate">
+                        <Badge>{index + 1}</Badge>
+                        <div className="text-xs truncate max-w-[240px]">
                           <strong>{address.description}</strong>
                           <br />
                           CEP: {address.cep}
@@ -68,7 +60,6 @@ export function ManageAddressesPanel({
                       <Button
                         variant="ghost"
                         size="icon"
-                        className="text-red-500 hover:bg-red-50"
                         onClick={() => onRemove(address.id)}
                       >
                         <Trash2 className="w-4 h-4" />
@@ -83,5 +74,5 @@ export function ManageAddressesPanel({
         </Droppable>
       </DragDropContext>
     </div>
-  );
+  )
 }
