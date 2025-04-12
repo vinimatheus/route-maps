@@ -210,3 +210,39 @@ Feel free to help with improvements, better typings, and suggestions.
 
 MIT License.
 
+# Route Maps
+
+Este projeto utiliza a API do Google Maps para funcionalidades de mapeamento e rotas.
+
+## Configuração
+
+Para utilizar este projeto, você precisa configurar sua chave da API do Google Maps:
+
+1. Crie um arquivo `.env` na raiz do projeto
+2. Adicione sua chave da API do Google Maps no arquivo `.env` da seguinte forma:
+   ```
+   GOOGLE_MAPS_API_KEY=sua_chave_aqui
+   ```
+
+## Obtenção da Chave da API
+
+Para obter uma chave da API do Google Maps:
+
+1. Acesse o [Google Cloud Console](https://console.cloud.google.com/)
+2. Crie um novo projeto ou selecione um existente
+3. Ative a API do Google Maps
+4. Crie uma chave de API nas credenciais
+5. Restrinja a chave de API conforme necessário para segurança
+
+## Segurança
+
+⚠️ **IMPORTANTE**: Nunca compartilhe sua chave da API publicamente. O arquivo `.env` está listado no `.gitignore` para evitar que seja commitado acidentalmente.
+
+## Dependências
+
+Certifique-se de ter as seguintes dependências instaladas:
+
+- Node.js
+- npm ou yarn
+- Pacotes necessários listados no `package.json`
+
